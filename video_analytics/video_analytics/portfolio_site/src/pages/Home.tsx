@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { ChevronRight, Cpu, Eye, ShieldAlert, Workflow, Server, Lock, Building2, Car, Factory, Target } from 'lucide-react';
+import { ChevronRight, Cpu, ShieldAlert, Server, Lock, Building2, Car, Factory, Target } from 'lucide-react';
 import SEO from '../components/SEO';
 
 const pageVariants = {
