@@ -1,0 +1,137 @@
+================================================================================
+                        🚀 START HERE - LOGIN FIX
+================================================================================
+
+PROBLEM: You're getting 401 error when trying to login.
+
+DIAGNOSIS RESULTS:
+✅ User exists: admin@eyespot.com
+✅ User is active: Yes
+✅ Correct password: admin123
+❌ You're trying: admintr93 (WRONG!)
+
+================================================================================
+                        SOLUTION (3 STEPS)
+================================================================================
+
+STEP 1: Make sure Backend is Running
+-------------------------------------
+Open a NEW terminal window:
+
+    cd video_analytics\backend
+    python run.py
+
+You should see:
+    "Uvicorn running on http://0.0.0.0:8000"
+
+Keep this terminal open!
+
+
+STEP 2: Make sure Frontend is Running
+--------------------------------------
+Open ANOTHER NEW terminal window:
+
+    cd video_analytics\frontend
+    npm run dev
+
+You should see:
+    "Local: http://localhost:5173/"
+
+Keep this terminal open too!
+
+
+STEP 3: Login with Correct Password
+------------------------------------
+1. Open browser: http://localhost:5173/login
+
+2. Enter credentials:
+   Email:    admin@eyespot.com
+   Password: admin123
+
+3. Click "Sign In"
+
+4. You should be redirected to the dashboard!
+
+================================================================================
+                        STILL NOT WORKING?
+================================================================================
+
+Use the Interactive Fix Tool:
+
+    cd video_analytics\backend
+    COMPLETE_FIX.bat
+
+This will:
+✅ Check if backend is running
+✅ Run diagnostics
+✅ Test login endpoint
+✅ Fix any issues
+✅ Guide you through the process
+
+================================================================================
+                        ALTERNATIVE USERS
+================================================================================
+
+Your database has 3 users:
+
+1. admin@eyespot.com (SuperAdmin) - Password: admin123
+2. admin1@sunpharma.com (Admin) - Password: Unknown
+3. admin12@gfuturetech.com (Admin) - Password: Unknown
+
+To find passwords for other users, run:
+    cd video_analytics\backend
+    python diagnose_login_issue.py
+
+================================================================================
+                        COMMON MISTAKES
+================================================================================
+
+❌ Using wrong password (admintr93 instead of admin123)
+❌ Backend not running
+❌ Frontend not running
+❌ Using wrong email
+❌ Browser cache issues
+
+================================================================================
+                        VERIFICATION CHECKLIST
+================================================================================
+
+Before trying to login, verify:
+
+□ Backend is running on port 8000
+  Check: http://localhost:8000/docs should open API docs
+
+□ Frontend is running on port 5173
+  Check: http://localhost:5173 should show login page
+
+□ Using correct email: admin@eyespot.com
+
+□ Using correct password: admin123
+
+□ No errors in backend terminal
+
+□ No errors in frontend terminal
+
+================================================================================
+                        NEED MORE HELP?
+================================================================================
+
+Run the complete diagnostic:
+
+    cd video_analytics\backend
+    python diagnose_login_issue.py
+
+This will tell you:
+- If user exists
+- Which password works
+- All users in database
+- User status (active/inactive)
+
+================================================================================
+
+TL;DR: 
+1. Start backend: python run.py
+2. Start frontend: npm run dev  
+3. Login with: admin@eyespot.com / admin123
+
+================================================================================

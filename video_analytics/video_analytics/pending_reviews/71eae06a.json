@@ -1,0 +1,1 @@
+{"id": "71eae06a", "camera_id": 3, "evidence": 1.2584268823613474, "frame_score": 0.8532540202140808, "created_at": 1774704790.1734354, "status": "dismissed", "detections": [{"bbox": [351, 13, 422, 155], "confidence": 0.8532540202140808, "class_id": 1, "class_name": "Shoplifting", "is_shoplifting": true, "passes_gate": true}]}

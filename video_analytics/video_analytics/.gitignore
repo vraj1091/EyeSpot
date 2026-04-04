@@ -1,0 +1,18 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+venv/
+env/
+.env
+
+# Machine Learning Models & Heavy Files
+*.pt
+*.weights
+*.caffemodel
+dataset/
+
+# Node.js & Frontend
+node_modules/
+dist/
+build/
+.env.local

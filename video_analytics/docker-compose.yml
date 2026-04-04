@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./video_analytics/backend
+      dockerfile: Dockerfile
+    container_name: video-analytics-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./video_analytics/backend/alert_images:/app/alert_images
+      - ./video_analytics/backend/security_system.db:/app/security_system.db
+    environment:
+      - DEBUG=false
+      - DATABASE_URL=sqlite+aiosqlite:////app/security_system.db
+      - SECRET_KEY=${SECRET_KEY:-your-default-secret-key}
+    restart: always
+
+  frontend:
+    build:
+      context: ./video_analytics/frontend
+      dockerfile: Dockerfile
+    container_name: video-analytics-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://your-vps-ip:8000
+    restart: always

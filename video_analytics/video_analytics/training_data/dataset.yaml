@@ -1,0 +1,6 @@
+path: C:\Users\vrajr\Downloads\video_analytics (2)\video_analytics\video_analytics\training_data
+train: images/train
+val: images/val
+
+nc: 6
+names: ['Customer-Bagpack', 'Product', 'Product-Picked', 'Regular', 'Shoplifting', 'Shopping-Cart']

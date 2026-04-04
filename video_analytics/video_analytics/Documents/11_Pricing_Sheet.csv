@@ -1,0 +1,5 @@
+Tier_Name,Target_Client,Max_Cameras,Price_Per_Camera_Mo,Features_Included,Support_SLA
+Pro,Small Business,Up to 25,$35,"Basic Theft, Presence, UI Dashboard",Email (48hr)
+Business,Mid-Market Retail,Up to 100,$28,"All Threat Models, Reporting, Webhooks",Phone & Email (24hr)
+Enterprise,Large Box Chains,Unlimited,$20,"Custom Models, Sharding, Direct API Repo",Dedicated CSM (4hr)
+Pilot / PoC,Any,Testing Scope,Flat $2500,"Full Access (30 days)",Direct Engineer Access

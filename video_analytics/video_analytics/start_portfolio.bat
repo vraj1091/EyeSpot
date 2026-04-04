@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies...
+cd portfolio_site
+call npm install
+echo Starting Development Server...
+call npm run dev
