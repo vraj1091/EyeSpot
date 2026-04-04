@@ -32,20 +32,20 @@ export default function Home() {
             <span className="text-sm md:text-base font-black tracking-[0.2em] text-primary uppercase">System Live: Deep Inference Engine V4.2</span>
           </div>
 
-          <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter">
+          <h1 className="text-6xl sm:text-7xl lg:text-[10rem] font-black leading-[0.9] tracking-tighter">
             <span className="text-white drop-shadow-2xl">{companyName}</span><br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-primary to-slate-800 drop-shadow-2xl">Vision OS.</span>
           </h1>
           
-          <p className="text-2xl md:text-4xl text-gray-400 font-light max-w-5xl mx-auto leading-relaxed mt-12 bg-slate-900/40 p-8 rounded-3xl border border-white/5 backdrop-blur-md">
+          <p className="text-xl sm:text-2xl md:text-4xl text-gray-400 font-light max-w-5xl mx-auto leading-relaxed mt-8 md:mt-12 bg-slate-900/40 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 backdrop-blur-md">
             {tagline} We process raw optical data at the physical edge to eliminate cloud latency, providing military-grade predictive threat detection globally.
           </p>
           
-          <div className="pt-16 flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Link to="/products" className="group flex items-center gap-4 bg-white text-slate-950 px-12 py-6 rounded-full font-black tracking-[0.2em] uppercase hover:bg-primary transition-all shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:shadow-[0_0_80px_rgba(56,189,248,0.5)] text-lg">
-              Initialize Modules <ChevronRight className="w-6 h-6 group-hover:translate-x-3 transition-transform" />
+          <div className="pt-12 md:pt-16 flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
+            <Link to="/products" className="group flex items-center justify-center gap-4 bg-white text-slate-950 w-full sm:w-auto px-8 py-5 md:px-12 md:py-6 rounded-full font-black tracking-[0.2em] uppercase hover:bg-primary transition-all shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:shadow-[0_0_80px_rgba(56,189,248,0.5)] text-sm md:text-lg">
+              Initialize Modules <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-3 transition-transform" />
             </Link>
-            <Link to="/contact" className="px-12 py-6 rounded-full font-black tracking-[0.2em] uppercase text-gray-300 hover:text-white border border-white/20 hover:border-white/50 hover:bg-white/5 transition-all text-lg shadow-lg">
+            <Link to="/contact" className="w-full sm:w-auto text-center px-8 py-5 md:px-12 md:py-6 rounded-full font-black tracking-[0.2em] uppercase text-gray-300 hover:text-white border border-white/20 hover:border-white/50 hover:bg-white/5 transition-all text-sm md:text-lg shadow-lg">
               Request Uplink
             </Link>
           </div>
@@ -59,8 +59,8 @@ export default function Home() {
               { label: 'False Alerts', val: '0.01%' }
             ].map((metric, idx) => (
               <div key={idx} className="space-y-2">
-                <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">{metric.val}</div>
-                <div className="text-sm font-bold tracking-widest text-primary uppercase opacity-80">{metric.label}</div>
+                <div className="text-3xl md:text-5xl font-black text-white drop-shadow-lg">{metric.val}</div>
+                <div className="text-xs md:text-sm font-bold tracking-widest text-primary uppercase opacity-80">{metric.label}</div>
               </div>
             ))}
           </div>
@@ -82,9 +82,9 @@ export default function Home() {
 
       {/* 2. CORE ARCHITECTURE */}
       <section className="max-w-7xl mx-auto px-6 relative z-10 pt-20">
-        <div className="text-center space-y-8 mb-24">
-          <h2 className="text-6xl md:text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent drop-shadow-md">The Edge Architecture</h2>
-          <p className="text-xl md:text-2xl text-gray-400 font-light max-w-4xl mx-auto leading-relaxed">
+        <div className="text-center space-y-6 md:space-y-8 mb-16 md:mb-24">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent drop-shadow-md leading-tight">The Edge Architecture</h2>
+          <p className="text-lg md:text-2xl text-gray-400 font-light max-w-4xl mx-auto leading-relaxed">
             Legacy CCTV systems are passive observation tools. {companyName} transforms them into an intelligent neural net that actively dissects physical environments in real-time.
           </p>
         </div>
@@ -95,8 +95,8 @@ export default function Home() {
             { i: Cpu, t: 'Neural Inference', d: 'Executes highly specialized spatio-temporal graph convolutional networks to map human skeleton vectors and trace object interaction paths instantaneously on local edge silicon.' }, 
             { i: Target, t: 'Action Command', d: 'Triggers programmatic webhooks, dispatches SMS alerts to security teams, or takes secure control of PTZ cameras to autonomously follow suspects through restricted zones.' }
           ].map((Feat, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-50px' }} transition={{ delay: idx * 0.2 }} className="glass-panel p-14 rounded-[3rem] border-white/10 hover:border-primary/40 transition-colors group bg-slate-900/60 shadow-[0_30px_60px_rgba(0,0,0,0.4)] hover:-translate-y-4 duration-500">
-              <div className="flex justify-between items-start mb-12">
+            <motion.div key={idx} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-50px' }} transition={{ delay: idx * 0.2 }} className="glass-panel p-8 md:p-14 rounded-[2rem] md:rounded-[3rem] border-white/10 hover:border-primary/40 transition-colors group bg-slate-900/60 shadow-[0_30px_60px_rgba(0,0,0,0.4)] hover:-translate-y-4 duration-500">
+              <div className="flex justify-between items-start mb-10 md:mb-12">
                 <div className="w-24 h-24 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-primary/20 transition-all scale-110 group-hover:rotate-12 shadow-inner">
                   <Feat.i className="w-12 h-12 text-white group-hover:text-primary transition-colors drop-shadow-md" />
                 </div>
@@ -114,9 +114,9 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-full h-[800px] bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="space-y-8 mb-24 max-w-4xl">
-            <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none">Dominate Every Environment</h2>
-            <p className="text-2xl text-gray-400 font-light leading-relaxed">
+          <div className="space-y-6 md:space-y-8 mb-16 md:mb-24 max-w-4xl">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white leading-none">Dominate Every Environment</h2>
+            <p className="text-lg md:text-2xl text-gray-400 font-light leading-relaxed">
               Our scalable artificial intelligence protocols are explicitly trained to conquer the unique physical challenges of enterprise-class sectors.
             </p>
           </div>
@@ -148,16 +148,16 @@ export default function Home() {
 
       {/* 4. SECURITY & COMPLIANCE CTA */}
       <section className="max-w-6xl mx-auto px-6 text-center space-y-16 relative z-10 pb-32 pt-20">
-        <div className="inline-flex items-center justify-center p-8 bg-white/5 rounded-full mb-8 border border-white/10 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-          <ShieldAlert className="w-16 h-16 text-accent drop-shadow-[0_0_15px_#818cf8]" />
+        <div className="inline-flex items-center justify-center p-6 md:p-8 bg-white/5 rounded-full mb-6 md:mb-8 border border-white/10 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+          <ShieldAlert className="w-12 h-12 md:w-16 md:h-16 text-accent drop-shadow-[0_0_15px_#818cf8]" />
         </div>
-        <h2 className="text-6xl md:text-[5rem] font-black text-white leading-none tracking-tighter">Total Data Sovereignty</h2>
-        <p className="text-2xl md:text-3xl text-gray-400 font-light leading-relaxed max-w-4xl mx-auto">
+        <h2 className="text-4xl sm:text-5xl md:text-[5rem] font-black text-white leading-none tracking-tighter">Total Data Sovereignty</h2>
+        <p className="text-lg sm:text-2xl md:text-3xl text-gray-400 font-light leading-relaxed max-w-4xl mx-auto">
           {companyName} never streams your raw video feeds to external clouds. Absolute processing happens directly inside your physical network boundaries, ensuring instant compliance with GDPR, HIPAA, and federal communications integrity regulations.
         </p>
-        <div className="flex justify-center pt-16">
-          <Link to="/contact" className="px-16 py-8 bg-white text-slate-950 font-black tracking-[0.2em] uppercase rounded-[3rem] hover:bg-accent hover:text-white shadow-[0_15px_40px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_60px_rgba(129,140,248,0.6)] transition-all text-2xl hover:scale-105 active:scale-95 duration-300 flex items-center gap-4">
-            Inquire For Enterprise Audit <ChevronRight className="w-8 h-8" />
+        <div className="flex justify-center pt-10 md:pt-16">
+          <Link to="/contact" className="w-full sm:w-auto px-8 py-6 md:px-16 md:py-8 bg-white text-slate-950 font-black tracking-[0.2em] uppercase rounded-[2rem] md:rounded-[3rem] hover:bg-accent hover:text-white shadow-[0_15px_40px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_60px_rgba(129,140,248,0.6)] transition-all text-sm sm:text-lg md:text-2xl hover:scale-105 active:scale-95 duration-300 flex items-center justify-center gap-4">
+            Inquire For Enterprise Audit <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
           </Link>
         </div>
       </section>
