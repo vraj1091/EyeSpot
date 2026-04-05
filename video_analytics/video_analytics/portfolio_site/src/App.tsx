@@ -47,7 +47,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-primary/30 relative flex flex-col">
+      <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-primary/30 relative flex flex-col overflow-x-hidden">
         {/* Deep 3D Space Background Layer */}
         <Suspense fallback={<div className="absolute inset-0 bg-slate-950 z-0" />}>
           <div className="fixed inset-0 pointer-events-none z-0">
@@ -58,7 +58,7 @@ export default function App() {
         <Navbar />
         <AdminPanel isOpen={isAdminOpen} onClose={() => setAdminOpen(false)} />
 
-        <div className="flex-1 relative z-10 w-full pt-32 px-6 md:px-12 max-w-7xl mx-auto flex flex-col">
+        <div className="flex-1 relative z-10 w-full pt-32 px-4 md:px-12 max-w-7xl mx-auto flex flex-col">
           <AnimatedRoutes />
         </div>
 
