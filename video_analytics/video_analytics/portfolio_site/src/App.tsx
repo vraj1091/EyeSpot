@@ -49,7 +49,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 text-slate-900 font-body selection:bg-primary/20 relative flex flex-col overflow-x-hidden">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(13,78,216,0.18),transparent_30%),radial-gradient(circle_at_90%_0%,rgba(249,115,22,0.16),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#eff6ff_35%,#f8fafc_100%)]" />
         <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern opacity-30" />
-        <Navbar onOpenAdmin={() => setIsAdminOpen(true)} />
+        <Navbar />
         <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
 
         <div className="site-shell flex-1 relative z-10 pt-24 md:pt-28 flex flex-col">

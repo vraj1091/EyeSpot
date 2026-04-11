@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export default function Navbar({ onOpenAdmin }: { onOpenAdmin: () => void }) {
+export default function Navbar() {
   const { companyName } = useStore();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,13 +53,6 @@ export default function Navbar({ onOpenAdmin }: { onOpenAdmin: () => void }) {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenAdmin}
-              className="inline-flex items-center px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
-            >
-              Admin
-            </button>
             <Link
               to="/contact"
               className="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
@@ -92,13 +85,6 @@ export default function Navbar({ onOpenAdmin }: { onOpenAdmin: () => void }) {
                   {link.label}
                 </Link>
               ))}
-              <button
-                type="button"
-                onClick={onOpenAdmin}
-                className="mt-2 inline-flex justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
-              >
-                Open Admin Panel
-              </button>
               <Link
                 to="/contact"
                 className="inline-flex justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
