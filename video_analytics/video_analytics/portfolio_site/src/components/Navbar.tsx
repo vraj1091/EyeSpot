@@ -1,49 +1,114 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Maximize, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-export default function Navbar() {
+export default function Navbar({ onOpenAdmin }: { onOpenAdmin: () => void }) {
   const { companyName } = useStore();
   const location = useLocation();
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const isActive = (path: string) => location.pathname === path;
 
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/about', label: 'About' },
+    { to: '/products', label: 'Solutions' },
+    { to: '/pricing', label: 'Pricing' },
+    { to: '/contact', label: 'Contact' },
+  ];
+
   return (
-    <nav className="fixed top-0 w-full z-50 bg-slate-950/60 backdrop-blur-3xl border-b border-white/5 py-4 px-6 md:py-5 md:px-8 flex justify-between items-center transition-all duration-300">
-      <Link to="/" className="flex items-center gap-2 md:gap-3 font-black text-xl md:text-2xl tracking-tighter text-white hover:scale-105 transition-transform origin-left z-50">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center flex-shrink-0">
-          <Maximize className="w-4 h-4 text-slate-950" />
+    <nav className="fixed top-0 inset-x-0 z-50 py-3">
+      <div className="site-shell">
+        <div className="rounded-2xl border border-white/70 bg-white/80 backdrop-blur-xl shadow-[0_20px_50px_-32px_rgba(15,23,42,0.5)] px-4 md:px-6 py-3 flex items-center justify-between gap-4">
+          <Link to="/" className="z-50 min-w-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-700 border border-blue-500/30 flex items-center justify-center text-white font-heading font-semibold flex-shrink-0">
+                {companyName.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="font-heading text-xl font-semibold text-slate-900 leading-none truncate">{companyName}</p>
+                <p className="text-xs text-slate-500 tracking-wide truncate">AI Video Intelligence Platform</p>
+              </div>
+            </div>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 text-sm font-semibold text-slate-600">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-3 py-2 rounded-lg transition-colors ${
+                  isActive(link.to) ? 'bg-primary/10 text-primary' : 'hover:text-primary hover:bg-slate-100/90'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="inline-flex items-center px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
+            >
+              Admin
+            </button>
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+            >
+              Book a Demo
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="md:hidden z-50 text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-        <span className="truncate">{companyName.toUpperCase()}</span><span className="text-primary font-light">.AI</span>
-      </Link>
-      
-      {/* Desktop Menu */}
-      <div className="hidden md:flex gap-10 items-center text-xs font-bold text-gray-400 tracking-[0.2em] uppercase">
-        <Link to="/" className={`${isActive('/') ? 'text-white' : 'hover:text-primary'} transition-colors`}>Core</Link>
-        <Link to="/about" className={`${isActive('/about') ? 'text-white' : 'hover:text-primary'} transition-colors`}>Intel</Link>
-        <Link to="/products" className={`${isActive('/products') ? 'text-white' : 'hover:text-primary'} transition-colors`}>Modules</Link>
-        <Link to="/pricing" className={`${isActive('/pricing') ? 'text-white' : 'hover:text-primary'} transition-colors`}>Deploy</Link>
-        <Link to="/contact" className={`${isActive('/contact') ? 'text-white' : 'hover:text-primary'} transition-colors`}>Uplink</Link>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-2 rounded-2xl border border-white/70 bg-white/95 backdrop-blur-xl shadow-lg px-4 pb-5 pt-4">
+            <div className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold ${
+                    isActive(link.to) ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="mt-2 inline-flex justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
+              >
+                Open Admin Panel
+              </button>
+              <Link
+                to="/contact"
+                className="inline-flex justify-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Book a Demo
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Mobile Menu Toggle */}
-      <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden z-50 text-white p-2">
-        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-slate-950/95 backdrop-blur-xl border-b border-white/10 md:hidden flex flex-col pt-6 pb-10 space-y-8 text-center shadow-2xl">
-          <Link onClick={() => setMobileMenuOpen(false)} to="/" className={`${isActive('/') ? 'text-white' : 'text-gray-400'} font-bold tracking-[0.2em] uppercase text-sm hover:text-primary transition-colors`}>Core</Link>
-          <Link onClick={() => setMobileMenuOpen(false)} to="/about" className={`${isActive('/about') ? 'text-white' : 'text-gray-400'} font-bold tracking-[0.2em] uppercase text-sm hover:text-primary transition-colors`}>Intel</Link>
-          <Link onClick={() => setMobileMenuOpen(false)} to="/products" className={`${isActive('/products') ? 'text-white' : 'text-gray-400'} font-bold tracking-[0.2em] uppercase text-sm hover:text-primary transition-colors`}>Modules</Link>
-          <Link onClick={() => setMobileMenuOpen(false)} to="/pricing" className={`${isActive('/pricing') ? 'text-white' : 'text-gray-400'} font-bold tracking-[0.2em] uppercase text-sm hover:text-primary transition-colors`}>Deploy</Link>
-          <Link onClick={() => setMobileMenuOpen(false)} to="/contact" className={`${isActive('/contact') ? 'text-white' : 'text-gray-400'} font-bold tracking-[0.2em] uppercase text-sm hover:text-primary transition-colors`}>Uplink</Link>
-        </div>
-      )}
     </nav>
   );
 }

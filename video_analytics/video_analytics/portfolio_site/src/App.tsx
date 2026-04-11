@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
@@ -10,8 +10,6 @@ import About from './pages/About';
 import Products from './pages/Products';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
-
-const ThreeCanvas = lazy(() => import('./components/ThreeCanvas'));
 
 // Animated Route Wrapper
 function AnimatedRoutes() {
@@ -30,35 +28,31 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
-  const [isAdminOpen, setAdminOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Secret shortcut: Ctrl + Shift + A to toggle Admin Panel
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        setAdminOpen(prev => !prev);
+    const handleShortcut = (event: KeyboardEvent) => {
+      const keyPressed = event.key.toLowerCase() === 'a';
+      const openCombo = keyPressed && event.shiftKey && (event.ctrlKey || event.metaKey);
+      if (openCombo) {
+        event.preventDefault();
+        setIsAdminOpen((prev) => !prev);
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-primary/30 relative flex flex-col overflow-x-hidden">
-        {/* Deep 3D Space Background Layer */}
-        <Suspense fallback={<div className="absolute inset-0 bg-slate-950 z-0" />}>
-          <div className="fixed inset-0 pointer-events-none z-0">
-            <ThreeCanvas />
-          </div>
-        </Suspense>
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-body selection:bg-primary/20 relative flex flex-col overflow-x-hidden">
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(13,78,216,0.18),transparent_30%),radial-gradient(circle_at_90%_0%,rgba(249,115,22,0.16),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#eff6ff_35%,#f8fafc_100%)]" />
+        <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern opacity-30" />
+        <Navbar onOpenAdmin={() => setIsAdminOpen(true)} />
+        <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
 
-        <Navbar />
-        <AdminPanel isOpen={isAdminOpen} onClose={() => setAdminOpen(false)} />
-
-        <div className="flex-1 relative z-10 w-full pt-32 px-4 md:px-12 max-w-7xl mx-auto flex flex-col">
+        <div className="site-shell flex-1 relative z-10 pt-24 md:pt-28 flex flex-col">
           <AnimatedRoutes />
         </div>
 

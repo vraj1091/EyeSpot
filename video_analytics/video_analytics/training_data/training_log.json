@@ -1,9 +1,9 @@
 {
-  "total_samples": 15,
-  "samples_since_last_train": 15,
+  "total_samples": 16,
+  "samples_since_last_train": 16,
   "training_runs": [],
   "last_trained": null,
   "model_version": 0,
-  "positive_samples": 10,
+  "positive_samples": 11,
   "negative_samples": 4
 }

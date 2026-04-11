@@ -4,73 +4,88 @@ import { Users, Eye, Target } from 'lucide-react';
 import SEO from '../components/SEO';
 
 const pageVariants = {
-  initial: { opacity: 0, filter: 'blur(20px)', scale: 0.95 },
-  in: { opacity: 1, filter: 'blur(0px)', scale: 1, transition: { duration: 0.8, ease: "easeOut" } },
-  out: { opacity: 0, filter: 'blur(20px)', scale: 1.05, transition: { duration: 0.4, ease: "easeIn" } }
+  initial: { opacity: 0, y: 16 },
+  in: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  out: { opacity: 0, y: -12, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
 export default function About() {
-  const { companyName, team, vision, mission, aboutText } = useStore();
+  const { companyName, team, vision, mission, aboutText, media } = useStore();
 
   return (
-    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-40 pb-20 pt-20">
-      <SEO 
-        title={`Core Intel | ${companyName} Team & Mission`} 
-        description={aboutText.substring(0, 150) + "..."}
+    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-16 pb-20 pt-4">
+      <SEO
+        title={`Core Intel | ${companyName} Team & Mission`}
+        description={`${aboutText.substring(0, 150)}...`}
         keywords="edge AI team, computer vision engineers, AI architects"
       />
-      <section className="text-center max-w-5xl mx-auto space-y-6 md:space-y-10 relative z-10 px-4">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-primary/10 blur-[100px] md:blur-[150px] rounded-full pointer-events-none z-0 mix-blend-screen" />
-        
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-5xl md:text-7xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white/80 to-slate-600 drop-shadow-lg">
-          Core Intel
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-lg sm:text-xl md:text-3xl text-gray-400 font-light leading-relaxed max-w-4xl mx-auto relative z-10">
-          {aboutText}
-        </motion.p>
-      </section>
 
-      <section className="grid md:grid-cols-2 gap-8 md:gap-16 max-w-7xl mx-auto items-stretch px-4">
-        <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: '-100px' }} className="glass-panel p-8 md:p-16 rounded-[2.5rem] md:rounded-[3rem] space-y-6 md:space-y-8 flex flex-col justify-center border-t-2 border-primary/20 hover:border-primary/50 transition-colors">
-          <Eye className="w-12 h-12 md:w-16 md:h-16 text-primary drop-shadow-[0_0_20px_#38bdf8]" />
-          <h3 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">Our Vision</h3>
-          <p className="text-gray-400 leading-relaxed text-xl md:text-2xl font-light">{vision}</p>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: '-100px' }} className="glass-panel p-8 md:p-16 rounded-[2.5rem] md:rounded-[3rem] space-y-6 md:space-y-8 flex flex-col justify-center border-t-2 border-accent/20 hover:border-accent/50 transition-colors bg-slate-900/60">
-          <Target className="w-12 h-12 md:w-16 md:h-16 text-accent drop-shadow-[0_0_20px_#818cf8]" />
-          <h3 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">Our Mission</h3>
-          <p className="text-gray-400 leading-relaxed text-xl md:text-2xl font-light">{mission}</p>
-        </motion.div>
-      </section>
-
-      <section className="space-y-16 md:space-y-24 pb-20 md:pb-32 px-4">
-        <div className="text-center max-w-3xl mx-auto space-y-4 md:space-y-6">
-          <h2 className="text-4xl md:text-6xl font-black text-white">The AI Node Command</h2>
-          <p className="text-lg md:text-2xl text-gray-400 font-light tracking-wide">Elite pioneers behind the {companyName} neural architecture.</p>
+      <section className="section-card p-2 overflow-hidden">
+        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-2">
+          <div className="p-8 md:p-12">
+            <p className="muted-label">About {companyName}</p>
+            <h1 className="mt-4 font-heading text-4xl md:text-6xl text-slate-900 font-semibold leading-tight">
+              Building Reliable Intelligence for Real-World Operations
+            </h1>
+            <p className="mt-6 max-w-4xl text-slate-600 leading-relaxed">{aboutText}</p>
+          </div>
+          <div className="image-frame min-h-[320px] lg:min-h-full">
+            <img src={media.aboutImage} alt="Team collaboration and intelligence operations" />
+          </div>
         </div>
-        
-        <div className="grid lg:grid-cols-3 gap-8 md:gap-16 max-w-7xl mx-auto">
+      </section>
+
+      <section className="grid md:grid-cols-2 gap-5">
+        <article className="section-card p-7 md:p-8 bg-gradient-to-br from-white to-blue-50/70">
+          <div className="w-11 h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <Eye className="w-5 h-5" />
+          </div>
+          <h2 className="mt-4 font-heading text-3xl text-slate-900 font-semibold">Our Vision</h2>
+          <p className="mt-3 text-slate-600 leading-relaxed">{vision}</p>
+        </article>
+
+        <article className="section-card p-7 md:p-8 bg-gradient-to-br from-white to-orange-50/70">
+          <div className="w-11 h-11 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
+            <Target className="w-5 h-5" />
+          </div>
+          <h2 className="mt-4 font-heading text-3xl text-slate-900 font-semibold">Our Mission</h2>
+          <p className="mt-3 text-slate-600 leading-relaxed">{mission}</p>
+        </article>
+      </section>
+
+      <section className="section-card p-8 md:p-10">
+        <div className="max-w-3xl">
+          <p className="muted-label">Leadership Team</p>
+          <h2 className="section-title mt-3">The AI Node Command</h2>
+          <p className="mt-4 text-slate-600 leading-relaxed">
+            Elite pioneers behind the {companyName} neural architecture.
+          </p>
+        </div>
+
+        <div className="mt-8 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
           {team.map((t, i) => (
-            <motion.div 
+            <motion.article
               key={t.id}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-100px' }}
-              transition={{ delay: i * 0.15, duration: 0.8 }}
-              className="text-center group relative cursor-pointer glass-panel p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] hover:border-white/20 transition-all duration-700 flex flex-col items-center"
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="rounded-2xl border border-slate-200 bg-white overflow-hidden p-0 shadow-sm"
             >
-              <div className="mx-auto w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-white/5 bg-gradient-to-br from-slate-900/80 to-slate-950 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden relative mb-6 md:mb-8 group-hover:border-primary/30 transition-all duration-700 group-hover:-translate-y-2">
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl mix-blend-overlay" />
-                <Users className="w-12 h-12 md:w-20 md:h-20 text-white/20 group-hover:text-primary transition-all duration-700 scale-90 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(56,189,248,0)] group-hover:drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]" />
+              <div className="relative h-56">
+                <img src={t.image || media.teamDefaultImage} alt={`${t.name} profile`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
+                <div className="absolute bottom-4 left-4 w-11 h-11 rounded-full bg-white/20 text-white border border-white/40 flex items-center justify-center backdrop-blur-sm">
+                  <Users className="w-5 h-5" />
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-2">{t.name}</h3>
-                <p className="text-primary font-black text-xs md:text-sm tracking-[0.2em] uppercase mb-4">{t.role}</p>
-                <p className="italic font-serif text-white/50 text-base md:text-xl mb-6">"{t.slogan}"</p>
-                <div className="h-px w-1/4 bg-white/10 mx-auto mb-6 transition-all group-hover:w-1/2 group-hover:bg-primary/50" />
-                <p className="text-gray-400 font-light leading-relaxed text-sm md:text-base">{t.details}</p>
+              <div className="p-6">
+                <h3 className="font-heading text-2xl text-slate-900 font-semibold">{t.name}</h3>
+                <p className="mt-1 text-xs uppercase tracking-widest text-primary font-semibold">{t.role}</p>
+                <p className="mt-4 italic text-slate-500">"{t.slogan}"</p>
+                <p className="mt-4 text-sm text-slate-600 leading-relaxed">{t.details}</p>
               </div>
-            </motion.div>
+            </motion.article>
           ))}
         </div>
       </section>

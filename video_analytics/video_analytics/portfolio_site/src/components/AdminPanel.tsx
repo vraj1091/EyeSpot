@@ -1,11 +1,56 @@
-import { useState, useEffect } from 'react';
-import { useStore, TeamMember, Product, Plan } from '../store/useStore';
-import { X, Save, Plus, Trash2, LayoutDashboard, Users, Box, Wallet } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  X,
+  Save,
+  Plus,
+  Trash2,
+  LayoutDashboard,
+  Users,
+  Box,
+  Wallet,
+  Search,
+  Copy,
+  Camera,
+  RefreshCcw,
+  Download,
+} from 'lucide-react';
+import { useStore, TeamMember, Product, Plan, SiteMedia } from '../store/useStore';
 
-export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const store = useStore();
-  
-  const [data, setData] = useState({
+type AdminTab = 'overview' | 'globals' | 'team' | 'products' | 'plans' | 'media';
+
+interface CompanyDraft {
+  companyName: string;
+  tagline: string;
+  vision: string;
+  mission: string;
+  aboutText: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactAddress: string;
+}
+
+interface Snapshot {
+  company: CompanyDraft;
+  team: TeamMember[];
+  products: Product[];
+  plans: Plan[];
+  media: SiteMedia;
+}
+
+type StoreStateFields = CompanyDraft & {
+  team: TeamMember[];
+  products: Product[];
+  plans: Plan[];
+  media: SiteMedia;
+};
+
+const createId = () => `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+
+const cloneValue = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const makeStoreSnapshot = (store: StoreStateFields): Snapshot => ({
+  company: {
     companyName: store.companyName,
     tagline: store.tagline,
     vision: store.vision,
@@ -14,325 +59,974 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     contactEmail: store.contactEmail,
     contactPhone: store.contactPhone,
     contactAddress: store.contactAddress,
-  });
+  },
+  team: cloneValue(store.team),
+  products: cloneValue(store.products),
+  plans: cloneValue(store.plans),
+  media: cloneValue(store.media),
+});
 
-  const [localTeam, setLocalTeam] = useState<TeamMember[]>([]);
-  const [localProducts, setLocalProducts] = useState<Product[]>([]);
-  const [localPlans, setLocalPlans] = useState<Plan[]>([]);
-  const [activeTab, setActiveTab] = useState<'globals' | 'team' | 'products' | 'plans'>('globals');
+const mediaFields: Array<{ key: keyof SiteMedia; label: string; hint: string }> = [
+  { key: 'heroImage', label: 'Home Hero', hint: 'Main visual in the homepage hero section.' },
+  { key: 'architectureImage', label: 'Architecture', hint: 'Used in architecture / technical blocks.' },
+  { key: 'industriesImage', label: 'Industries Banner', hint: 'Wide banner for industries section.' },
+  { key: 'aboutImage', label: 'About Hero', hint: 'Main image on about page.' },
+  { key: 'productsHeroImage', label: 'Products Hero', hint: 'Top image for products page.' },
+  { key: 'pricingImage', label: 'Pricing Hero', hint: 'Pricing page visual.' },
+  { key: 'contactImage', label: 'Contact Hero', hint: 'Contact page and footer visual.' },
+  { key: 'teamDefaultImage', label: 'Team Fallback', hint: 'Used when a team member image is missing.' },
+];
+
+export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const store = useStore();
+
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [query, setQuery] = useState('');
+  const [companyDraft, setCompanyDraft] = useState<CompanyDraft>({
+    companyName: '',
+    tagline: '',
+    vision: '',
+    mission: '',
+    aboutText: '',
+    contactEmail: '',
+    contactPhone: '',
+    contactAddress: '',
+  });
+  const [teamDraft, setTeamDraft] = useState<TeamMember[]>([]);
+  const [productDraft, setProductDraft] = useState<Product[]>([]);
+  const [planDraft, setPlanDraft] = useState<Plan[]>([]);
+  const [mediaDraft, setMediaDraft] = useState<SiteMedia>(store.media);
+  const [snapshotOnOpen, setSnapshotOnOpen] = useState('');
+  const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
 
   useEffect(() => {
-    if (isOpen) {
-      setData({
-        companyName: store.companyName,
-        tagline: store.tagline,
-        vision: store.vision,
-        mission: store.mission,
-        aboutText: store.aboutText,
-        contactEmail: store.contactEmail,
-        contactPhone: store.contactPhone,
-        contactAddress: store.contactAddress,
-      });
-      // Deep clone arrays to prevent live mutations
-      setLocalTeam(JSON.parse(JSON.stringify(store.team || [])));
-      setLocalProducts(JSON.parse(JSON.stringify(store.products || [])));
-      setLocalPlans(JSON.parse(JSON.stringify(store.plans || [])));
-    }
-  }, [isOpen, store]);
-  
+    if (!isOpen) return;
+    const snapshot = makeStoreSnapshot(store);
+    setCompanyDraft(snapshot.company);
+    setTeamDraft(snapshot.team);
+    setProductDraft(snapshot.products);
+    setPlanDraft(snapshot.plans);
+    setMediaDraft(snapshot.media);
+    setSnapshotOnOpen(JSON.stringify(snapshot));
+    setSaveState('idle');
+    setQuery('');
+    setActiveTab('overview');
+  }, [
+    isOpen,
+    store.aboutText,
+    store.companyName,
+    store.contactAddress,
+    store.contactEmail,
+    store.contactPhone,
+    store.media,
+    store.mission,
+    store.plans,
+    store.products,
+    store.tagline,
+    store.team,
+    store.vision,
+  ]);
+
+  const currentSnapshot = useMemo(() => JSON.stringify({
+    company: companyDraft,
+    team: teamDraft,
+    products: productDraft,
+    plans: planDraft,
+    media: mediaDraft,
+  }), [companyDraft, teamDraft, productDraft, planDraft, mediaDraft]);
+
+  const isDirty = currentSnapshot !== snapshotOnOpen;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleShortcuts = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        store.updateCompanyDetails(companyDraft);
+        store.updateTeam(teamDraft);
+        store.updateProducts(productDraft);
+        store.updatePlans(planDraft);
+        store.updateMedia(mediaDraft);
+        setSnapshotOnOpen(JSON.stringify({
+          company: companyDraft,
+          team: teamDraft,
+          products: productDraft,
+          plans: planDraft,
+          media: mediaDraft,
+        }));
+        setSaveState('saved');
+      }
+    };
+
+    window.addEventListener('keydown', handleShortcuts);
+    return () => window.removeEventListener('keydown', handleShortcuts);
+  }, [companyDraft, mediaDraft, onClose, planDraft, productDraft, store, teamDraft, isOpen]);
+
+  useEffect(() => {
+    if (saveState !== 'saved') return;
+    const timeout = window.setTimeout(() => setSaveState('idle'), 1600);
+    return () => window.clearTimeout(timeout);
+  }, [saveState]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  const filteredTeam = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return teamDraft;
+    return teamDraft.filter((member) =>
+      `${member.name} ${member.role} ${member.slogan} ${member.details}`.toLowerCase().includes(term)
+    );
+  }, [teamDraft, query]);
+
+  const filteredProducts = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return productDraft;
+    return productDraft.filter((product) =>
+      `${product.name} ${product.description} ${product.longDescription} ${product.features.join(' ')}`
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [productDraft, query]);
+
+  const filteredPlans = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return planDraft;
+    return planDraft.filter((plan) =>
+      `${plan.name} ${plan.price} ${plan.type} ${plan.features.join(' ')}`.toLowerCase().includes(term)
+    );
+  }, [planDraft, query]);
+
+  const navItems: Array<{ id: AdminTab; label: string; icon: typeof LayoutDashboard }> = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'globals', label: 'Brand + Contact', icon: LayoutDashboard },
+    { id: 'team', label: 'Team', icon: Users },
+    { id: 'products', label: 'Products', icon: Box },
+    { id: 'plans', label: 'Pricing', icon: Wallet },
+    { id: 'media', label: 'Media', icon: Camera },
+  ];
+
   const handleSave = () => {
-    store.updateCompanyDetails(data);
-    store.updateTeam(localTeam);
-    store.updateProducts(localProducts);
-    store.updatePlans(localPlans);
-    onClose();
+    store.updateCompanyDetails(companyDraft);
+    store.updateTeam(teamDraft);
+    store.updateProducts(productDraft);
+    store.updatePlans(planDraft);
+    store.updateMedia(mediaDraft);
+    setSnapshotOnOpen(JSON.stringify({
+      company: companyDraft,
+      team: teamDraft,
+      products: productDraft,
+      plans: planDraft,
+      media: mediaDraft,
+    }));
+    setSaveState('saved');
+  };
+
+  const handleReset = () => {
+    const snapshot = makeStoreSnapshot(store);
+    setCompanyDraft(snapshot.company);
+    setTeamDraft(snapshot.team);
+    setProductDraft(snapshot.products);
+    setPlanDraft(snapshot.plans);
+    setMediaDraft(snapshot.media);
+    setSnapshotOnOpen(JSON.stringify(snapshot));
+    setQuery('');
+    setSaveState('idle');
+  };
+
+  const exportBackup = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      company: companyDraft,
+      team: teamDraft,
+      products: productDraft,
+      plans: planDraft,
+      media: mediaDraft,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `eyespot-admin-backup-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!isOpen) return null;
 
-  const inputClasses = "w-full bg-slate-950/80 p-5 rounded-2xl border border-white/5 text-white focus:border-primary focus:bg-slate-950 outline-none transition-colors font-medium text-lg shadow-inner";
-  const labelClasses = "text-xs text-primary font-black uppercase tracking-[0.2em]";
-  const textareaClasses = "w-full bg-slate-950/80 p-5 rounded-2xl border border-white/5 text-gray-300 focus:border-primary outline-none transition-colors resize-none leading-relaxed";
+  const fieldLabel = 'text-xs font-semibold uppercase tracking-[0.16em] text-slate-500';
+  const textInput =
+    'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition';
+  const textArea =
+    'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/50 transition resize-y min-h-[120px]';
+  const card = 'rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-[0_16px_40px_-30px_rgba(15,23,42,0.45)]';
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="relative w-full max-w-6xl h-[95vh] overflow-hidden glass-panel rounded-3xl p-0 border border-white/20 flex flex-col">
-        {/* HEADER */}
-        <div className="bg-slate-950 border-b border-white/10 p-6 flex justify-between items-center sticky top-0 z-20 shadow-xl">
-          <h2 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent uppercase tracking-widest">
-            EyeSpot Core Override
-          </h2>
-          <button onClick={onClose} className="text-white bg-white/5 p-3 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* TABS */}
-        <div className="bg-slate-950/80 px-8 py-6 border-b border-white/5">
-          <div className="flex bg-slate-900/40 p-2 rounded-2xl gap-2 overflow-x-auto border border-white/5">
-            {[
-              { id: 'globals', label: 'Globals & Contact', icon: LayoutDashboard },
-              { id: 'team', label: 'Personnel (Team)', icon: Users },
-              { id: 'products', label: 'Modules (Products)', icon: Box },
-              { id: 'plans', label: 'Security Tiers (Plans)', icon: Wallet }
-            ].map(t => (
-              <button 
-                key={t.id}
-                onClick={() => setActiveTab(t.id as any)}
-                className={`flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all whitespace-nowrap ${activeTab === t.id ? 'bg-primary text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+  const panel = (
+    <div className="fixed inset-0 bg-slate-900/55 backdrop-blur-sm p-3 md:p-6" style={{ zIndex: 2147483000 }}>
+      <div className="mx-auto h-full w-full max-w-[1700px] rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_42%,#f8fafc_100%)] shadow-[0_35px_120px_-55px_rgba(15,23,42,0.7)] overflow-hidden">
+        <div className="grid h-full lg:grid-cols-[280px_1fr]">
+          <aside className="border-b lg:border-b-0 lg:border-r border-slate-200/80 bg-white/75 backdrop-blur-xl p-4 md:p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Control Center</p>
+                <h2 className="font-heading text-2xl text-slate-900">Admin Workspace</h2>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition"
+                aria-label="Close admin panel"
               >
-                <t.icon className="w-4 h-4" /> {t.label}
+                <X className="w-5 h-5" />
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* CONTENT */}
-        <div className="overflow-y-auto p-8 space-y-16 flex-1 bg-slate-900/50">
-          
-          {/* 1. GLOBALS TAB */}
-          {activeTab === 'globals' && (
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <section className="space-y-6">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-4 shadow-sm">Global Branding</h3>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className={labelClasses}>Designation Code (Name)</label>
-                    <input value={data.companyName} onChange={e => setData({...data, companyName: e.target.value})} className={inputClasses} />
-                  </div>
-                  <div className="space-y-3">
-                    <label className={labelClasses}>Operational Tagline</label>
-                    <input value={data.tagline} onChange={e => setData({...data, tagline: e.target.value})} className={inputClasses} />
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-8">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-4">Strategy & Intel</h3>
-                <div className="space-y-8">
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <label className={labelClasses}>Strategic Vision</label>
-                      <textarea value={data.vision} onChange={e => setData({...data, vision: e.target.value})} rows={4} className={textareaClasses} />
-                    </div>
-                    <div className="space-y-3">
-                      <label className={labelClasses}>Tactical Mission</label>
-                      <textarea value={data.mission} onChange={e => setData({...data, mission: e.target.value})} rows={4} className={textareaClasses} />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className={labelClasses}>Detailed Architecture / About</label>
-                    <textarea value={data.aboutText} onChange={e => setData({...data, aboutText: e.target.value})} rows={4} className={textareaClasses} />
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-6">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-4">Communication Uplink (Contact)</h3>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className={labelClasses}>Contact Email</label>
-                    <input value={data.contactEmail} onChange={e => setData({...data, contactEmail: e.target.value})} className={inputClasses} />
-                  </div>
-                  <div className="space-y-3">
-                    <label className={labelClasses}>Contact Phone</label>
-                    <input value={data.contactPhone} onChange={e => setData({...data, contactPhone: e.target.value})} className={inputClasses} />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                    <label className={labelClasses}>Physical HQ Address</label>
-                    <input value={data.contactAddress} onChange={e => setData({...data, contactAddress: e.target.value})} className={inputClasses} />
-                </div>
-              </section>
             </div>
-          )}
 
-          {/* 2. TEAM TAB */}
-          {activeTab === 'team' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex justify-between items-center bg-slate-950/40 p-6 rounded-3xl border border-white/5">
-                <div>
-                    <h3 className="text-xl font-bold text-white uppercase tracking-widest">Personnel Database</h3>
-                    <p className="text-gray-400 text-sm mt-1">Manage team members, roles, and intel.</p>
-                </div>
-                <button onClick={() => setLocalTeam([{id: Date.now().toString(), name: '', role: '', slogan: '', details: ''}, ...localTeam])} className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-6 py-4 rounded-full font-black uppercase text-xs tracking-widest border border-primary/20 transition-all">
-                  <Plus className="w-5 h-5"/> Add Personnel
-                </button>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-xl bg-white border border-slate-200 p-3">
+                <p className="text-slate-500">Team</p>
+                <p className="mt-1 font-heading text-xl text-slate-900">{teamDraft.length}</p>
               </div>
-              
-              <div className="space-y-8">
-                {localTeam.map((t, idx) => (
-                  <div key={t.id} className="bg-slate-900/40 p-8 rounded-3xl border border-white/5 space-y-6 relative group hover:border-white/10 transition-colors">
-                    <button onClick={() => setLocalTeam(localTeam.filter(x => x.id !== t.id))} className="absolute top-6 right-6 p-4 bg-red-500/10 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-xl">
-                      <Trash2 className="w-5 h-5"/>
-                    </button>
-                    
-                    <div className="flex gap-4 items-center mb-6">
-                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black text-xl border border-primary/30">0{idx + 1}</div>
-                      <h4 className="text-2xl font-black uppercase tracking-widest flex-1 text-white">{t.name || 'NEW AGENT'}</h4>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Full Name</label>
-                          <input value={t.name} onChange={e => { const nt = [...localTeam]; nt[idx].name = e.target.value; setLocalTeam(nt); }} className={inputClasses} placeholder="John Doe" />
-                      </div>
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Rank / Designation</label>
-                          <input value={t.role} onChange={e => { const nt = [...localTeam]; nt[idx].role = e.target.value; setLocalTeam(nt); }} className={inputClasses} placeholder="e.g. Chief Engineer" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className={labelClasses}>Personal Slogan</label>
-                        <input value={t.slogan} onChange={e => { const nt = [...localTeam]; nt[idx].slogan = e.target.value; setLocalTeam(nt); }} className={inputClasses} placeholder="Quote" />
-                    </div>
-                    <div className="space-y-2">
-                        <label className={labelClasses}>Full Biography / Intel</label>
-                        <textarea value={t.details} onChange={e => { const nt = [...localTeam]; nt[idx].details = e.target.value; setLocalTeam(nt); }} rows={3} className={textareaClasses} placeholder="Details" />
-                    </div>
-                  </div>
-                ))}
-                {localTeam.length === 0 && <div className="text-center p-10 text-gray-500 italic">No personnel initialized.</div>}
+              <div className="rounded-xl bg-white border border-slate-200 p-3">
+                <p className="text-slate-500">Products</p>
+                <p className="mt-1 font-heading text-xl text-slate-900">{productDraft.length}</p>
+              </div>
+              <div className="rounded-xl bg-white border border-slate-200 p-3">
+                <p className="text-slate-500">Plans</p>
+                <p className="mt-1 font-heading text-xl text-slate-900">{planDraft.length}</p>
+              </div>
+              <div className="rounded-xl bg-white border border-slate-200 p-3">
+                <p className="text-slate-500">Status</p>
+                <p className={`mt-1 font-semibold ${isDirty ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  {isDirty ? 'Unsaved' : 'Synced'}
+                </p>
               </div>
             </div>
-          )}
 
-          {/* 3. PRODUCTS TAB */}
-          {activeTab === 'products' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex justify-between items-center bg-slate-950/40 p-6 rounded-3xl border border-white/5">
-                <div>
-                    <h3 className="text-xl font-bold text-white uppercase tracking-widest">Neural Modules Database</h3>
-                    <p className="text-gray-400 text-sm mt-1">Configure your product offerings.</p>
-                </div>
-                <button onClick={() => setLocalProducts([{id: Date.now().toString(), name: '', description: '', longDescription: '', features: [], iconIndex: 0}, ...localProducts])} className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-6 py-4 rounded-full font-black uppercase text-xs tracking-widest border border-primary/20 transition-all">
-                  <Plus className="w-5 h-5"/> Initialize Module
+            <nav className="space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full rounded-xl px-3 py-2.5 flex items-center gap-3 text-sm font-semibold transition ${
+                    activeTab === item.id
+                      ? 'bg-primary text-white shadow-[0_10px_24px_-14px_rgba(13,78,216,0.75)]'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.label}</span>
                 </button>
+              ))}
+            </nav>
+
+            <div className="mt-auto rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600 space-y-1">
+              <p className="font-semibold text-slate-900">Shortcuts</p>
+              <p>`Ctrl/Cmd + S` Save</p>
+              <p>`Esc` Close panel</p>
+              <p>`Ctrl/Cmd + Shift + A` Toggle panel</p>
+            </div>
+          </aside>
+
+          <section className="min-h-0 flex flex-col">
+            <header className="border-b border-slate-200/80 bg-white/75 backdrop-blur-xl px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
+              <div className="relative w-full md:max-w-md">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search team, products, plans..."
+                  className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
+                />
               </div>
 
-              <div className="space-y-8">
-                {localProducts.map((p, idx) => (
-                  <div key={p.id} className="bg-slate-900/40 p-8 rounded-3xl border border-white/5 space-y-6 relative group hover:border-white/10 transition-colors">
-                    <button onClick={() => setLocalProducts(localProducts.filter(x => x.id !== p.id))} className="absolute top-6 right-6 p-4 bg-red-500/10 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-xl">
-                      <Trash2 className="w-5 h-5"/>
-                    </button>
-                    
-                    <div className="flex gap-4 items-center mb-6">
-                      <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent font-black text-xl border border-accent/30">{p.iconIndex || 0}</div>
-                      <h4 className="text-2xl font-black uppercase tracking-widest flex-1 text-white">{p.name || 'NEW MODULE'}</h4>
-                    </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`text-xs px-2.5 py-1 rounded-full border ${isDirty ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-emerald-300 bg-emerald-50 text-emerald-700'}`}>
+                  {isDirty ? 'Unsaved changes' : 'All changes saved'}
+                </span>
+                <button
+                  type="button"
+                  onClick={exportBackup}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-primary hover:text-primary transition"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-primary hover:text-primary transition"
+                >
+                  <RefreshCcw className="w-4 h-4" />
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                >
+                  <Save className="w-4 h-4" />
+                  {saveState === 'saved' ? 'Saved' : 'Save'}
+                </button>
+              </div>
+            </header>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Module Name</label>
-                          <input value={p.name} onChange={e => { const np = [...localProducts]; np[idx].name = e.target.value; setLocalProducts(np); }} className={inputClasses} placeholder="Module Name" />
-                      </div>
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Short Description</label>
-                          <input value={p.description} onChange={e => { const np = [...localProducts]; np[idx].description = e.target.value; setLocalProducts(np); }} className={inputClasses} placeholder="Brief summary" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className={labelClasses}>Long Technical Description</label>
-                        <textarea value={p.longDescription} onChange={e => { const np = [...localProducts]; np[idx].longDescription = e.target.value; setLocalProducts(np); }} rows={3} className={textareaClasses} placeholder="Full description" />
-                    </div>
-                    
-                    <div className="grid md:grid-cols-1 gap-6">
-                        <div className="space-y-2">
-                            <label className={labelClasses}>Features (Comma separated)</label>
-                            <input 
-                            value={p.features.join(', ')} 
-                            onChange={e => { 
-                                const np = [...localProducts]; 
-                                np[idx].features = e.target.value.split(',').map(s => s.trim()).filter(s => s); 
-                                setLocalProducts(np); 
-                            }}
-                            className={inputClasses}
-                            placeholder="Feature 1, Feature 2, Feature 3"
-                            />
-                        </div>
+            <div className="min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
+              {activeTab === 'overview' && (
+                <div className="space-y-5">
+                  <div className="rounded-2xl border border-slate-200 bg-white/90 p-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">System Overview</p>
+                    <h3 className="mt-2 font-heading text-3xl text-slate-900">Advanced Site Ops</h3>
+                    <p className="mt-3 text-slate-600 max-w-3xl">
+                      Update brand messaging, media assets, pricing matrices, and product modules from one panel.
+                      Every save syncs instantly to the live portfolio state.
+                    </p>
+                    <div className="mt-5 grid sm:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('team')}
+                        className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-white px-4 py-3 text-left transition"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Team</p>
+                        <p className="mt-1 font-semibold text-slate-900">{teamDraft.length} entries</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('products')}
+                        className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-white px-4 py-3 text-left transition"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Products</p>
+                        <p className="mt-1 font-semibold text-slate-900">{productDraft.length} modules</p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('plans')}
+                        className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-white px-4 py-3 text-left transition"
+                      >
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Pricing</p>
+                        <p className="mt-1 font-semibold text-slate-900">{planDraft.length} plan tiers</p>
+                      </button>
                     </div>
                   </div>
-                ))}
-                {localProducts.length === 0 && <div className="text-center p-10 text-gray-500 italic">No modules initialized.</div>}
-              </div>
-            </div>
-          )}
 
-          {/* 4. PLANS TAB */}
-          {activeTab === 'plans' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex justify-between items-center bg-slate-950/40 p-6 rounded-3xl border border-white/5">
-                <div>
-                    <h3 className="text-xl font-bold text-white uppercase tracking-widest">Security Tiers (Plans)</h3>
-                    <p className="text-gray-400 text-sm mt-1">Manage pricing plans for monthly, quarterly, yearly.</p>
+                  <div className="grid lg:grid-cols-2 gap-5">
+                    <article className={card}>
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Brand Name</p>
+                      <input
+                        value={companyDraft.companyName}
+                        onChange={(event) => setCompanyDraft((prev) => ({ ...prev, companyName: event.target.value }))}
+                        className={`${textInput} mt-2`}
+                      />
+                    </article>
+                    <article className={card}>
+                      <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Tagline</p>
+                      <input
+                        value={companyDraft.tagline}
+                        onChange={(event) => setCompanyDraft((prev) => ({ ...prev, tagline: event.target.value }))}
+                        className={`${textInput} mt-2`}
+                      />
+                    </article>
+                  </div>
                 </div>
-                <button onClick={() => setLocalPlans([{id: Date.now().toString(), name: '', type: 'monthly', price: '', features: []}, ...localPlans])} className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-6 py-4 rounded-full font-black uppercase text-xs tracking-widest border border-primary/20 transition-all">
-                  <Plus className="w-5 h-5"/> Add Tier
-                </button>
-              </div>
-
-              <div className="space-y-8">
-                {localPlans.map((pl, idx) => (
-                  <div key={pl.id} className="bg-slate-900/40 p-8 rounded-3xl border border-white/5 space-y-6 relative group hover:border-white/10 transition-colors">
-                    <button onClick={() => setLocalPlans(localPlans.filter(x => x.id !== pl.id))} className="absolute top-6 right-6 p-4 bg-red-500/10 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-xl">
-                      <Trash2 className="w-5 h-5"/>
-                    </button>
-
-                    <h4 className="text-2xl font-black uppercase tracking-widest flex-1 text-white border-b border-white/10 pb-4 mb-4">{pl.name || 'NEW TIER'}</h4>
-                    
-                    <div className="grid md:grid-cols-3 gap-6">
+              )}
+              {activeTab === 'globals' && (
+                <div className="space-y-5">
+                  <article className={card}>
+                    <h3 className="font-heading text-2xl text-slate-900">Brand + Contact</h3>
+                    <p className="mt-1 text-sm text-slate-500">Core company messaging and contact endpoints.</p>
+                    <div className="mt-5 grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                          <label className={labelClasses}>Tier Name</label>
-                          <input value={pl.name} onChange={e => { const np = [...localPlans]; np[idx].name = e.target.value; setLocalPlans(np); }} className={inputClasses} placeholder="Tier Name" />
-                      </div>
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Price (String)</label>
-                          <input value={pl.price} onChange={e => { const np = [...localPlans]; np[idx].price = e.target.value; setLocalPlans(np); }} className={inputClasses} placeholder="$199 or Custom" />
-                      </div>
-                      <div className="space-y-2">
-                          <label className={labelClasses}>Billing Cycle</label>
-                          <select value={pl.type} onChange={e => { const np = [...localPlans]; np[idx].type = e.target.value as any; setLocalPlans(np); }} className={inputClasses + " appearance-none cursor-pointer"}>
-                            <option value="monthly">Monthly</option>
-                            <option value="quarterly">Quarterly</option>
-                            <option value="yearly">Yearly</option>
-                          </select>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <label className={labelClasses}>Features (Comma separated)</label>
-                        <input 
-                        value={pl.features.join(', ')} 
-                        onChange={e => { 
-                            const np = [...localPlans]; 
-                            np[idx].features = e.target.value.split(',').map(s => s.trim()).filter(s => s); 
-                            setLocalPlans(np); 
-                        }}
-                        className={inputClasses}
-                        placeholder="Unlimited Cameras, Email Support"
+                        <label className={fieldLabel}>Company Name</label>
+                        <input
+                          value={companyDraft.companyName}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, companyName: event.target.value }))}
+                          className={textInput}
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>Tagline</label>
+                        <input
+                          value={companyDraft.tagline}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, tagline: event.target.value }))}
+                          className={textInput}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>Contact Email</label>
+                        <input
+                          value={companyDraft.contactEmail}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, contactEmail: event.target.value }))}
+                          className={textInput}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>Contact Phone</label>
+                        <input
+                          value={companyDraft.contactPhone}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, contactPhone: event.target.value }))}
+                          className={textInput}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className={fieldLabel}>Address</label>
+                        <input
+                          value={companyDraft.contactAddress}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, contactAddress: event.target.value }))}
+                          className={textInput}
+                        />
+                      </div>
                     </div>
+                  </article>
+
+                  <article className={card}>
+                    <h4 className="font-heading text-xl text-slate-900">Narrative</h4>
+                    <div className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>Vision</label>
+                        <textarea
+                          value={companyDraft.vision}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, vision: event.target.value }))}
+                          className={textArea}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>Mission</label>
+                        <textarea
+                          value={companyDraft.mission}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, mission: event.target.value }))}
+                          className={textArea}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className={fieldLabel}>About Text</label>
+                        <textarea
+                          value={companyDraft.aboutText}
+                          onChange={(event) => setCompanyDraft((prev) => ({ ...prev, aboutText: event.target.value }))}
+                          className={textArea}
+                        />
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              )}
+
+              {activeTab === 'team' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-heading text-2xl text-slate-900">Team Manager</h3>
+                      <p className="text-sm text-slate-500">Search-aware list with duplicate and remove controls.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTeamDraft((prev) => [
+                          {
+                            id: createId(),
+                            name: '',
+                            role: '',
+                            slogan: '',
+                            details: '',
+                            image: mediaDraft.teamDefaultImage,
+                          },
+                          ...prev,
+                        ])
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Team Member
+                    </button>
                   </div>
-                ))}
-            {localPlans.length === 0 && <div className="text-center p-10 text-gray-500 italic">No plans initialized.</div>}
-              </div>
+
+                  {filteredTeam.length === 0 && (
+                    <div className={card}>
+                      <p className="text-sm text-slate-500">No team entries match your search.</p>
+                    </div>
+                  )}
+
+                  {filteredTeam.map((member) => {
+                    const index = teamDraft.findIndex((item) => item.id === member.id);
+                    if (index === -1) return null;
+                    return (
+                      <article key={member.id} className={card}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="font-heading text-xl text-slate-900">
+                            {member.name || 'Unnamed Team Member'}
+                          </h4>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setTeamDraft((prev) => {
+                                  const copy = cloneValue(prev[index]);
+                                  copy.id = createId();
+                                  copy.name = copy.name ? `${copy.name} Copy` : '';
+                                  return [copy, ...prev];
+                                })
+                              }
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Duplicate
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTeamDraft((prev) => prev.filter((item) => item.id !== member.id))}
+                              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Name</label>
+                            <input
+                              value={member.name}
+                              onChange={(event) =>
+                                setTeamDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, name: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Role</label>
+                            <input
+                              value={member.role}
+                              onChange={(event) =>
+                                setTeamDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, role: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Slogan</label>
+                            <input
+                              value={member.slogan}
+                              onChange={(event) =>
+                                setTeamDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, slogan: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Bio</label>
+                            <textarea
+                              value={member.details}
+                              onChange={(event) =>
+                                setTeamDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, details: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textArea}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Image URL</label>
+                            <input
+                              value={member.image || ''}
+                              onChange={(event) =>
+                                setTeamDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, image: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                              placeholder="https://..."
+                            />
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+              {activeTab === 'products' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-heading text-2xl text-slate-900">Product Modules</h3>
+                      <p className="text-sm text-slate-500">Manage product messaging, features, icon slots, and imagery.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProductDraft((prev) => [
+                          {
+                            id: createId(),
+                            name: '',
+                            description: '',
+                            longDescription: '',
+                            features: [],
+                            iconIndex: 0,
+                            image: mediaDraft.productsHeroImage,
+                          },
+                          ...prev,
+                        ])
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Product
+                    </button>
+                  </div>
+
+                  {filteredProducts.length === 0 && (
+                    <div className={card}>
+                      <p className="text-sm text-slate-500">No products match your search.</p>
+                    </div>
+                  )}
+
+                  {filteredProducts.map((product) => {
+                    const index = productDraft.findIndex((item) => item.id === product.id);
+                    if (index === -1) return null;
+                    return (
+                      <article key={product.id} className={card}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="font-heading text-xl text-slate-900">{product.name || 'Untitled Module'}</h4>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setProductDraft((prev) => {
+                                  const copy = cloneValue(prev[index]);
+                                  copy.id = createId();
+                                  copy.name = copy.name ? `${copy.name} Copy` : '';
+                                  return [copy, ...prev];
+                                })
+                              }
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Duplicate
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setProductDraft((prev) => prev.filter((item) => item.id !== product.id))}
+                              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-4 grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Name</label>
+                            <input
+                              value={product.name}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, name: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Icon Index</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={product.iconIndex ?? 0}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? { ...item, iconIndex: Number.isNaN(Number(event.target.value)) ? 0 : Number(event.target.value) }
+                                      : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Short Description</label>
+                            <input
+                              value={product.description}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, description: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Long Description</label>
+                            <textarea
+                              value={product.longDescription}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, longDescription: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textArea}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Features (comma separated)</label>
+                            <input
+                              value={product.features.join(', ')}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? {
+                                          ...item,
+                                          features: event.target.value
+                                            .split(',')
+                                            .map((feature) => feature.trim())
+                                            .filter((feature) => feature.length > 0),
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className={fieldLabel}>Image URL</label>
+                            <input
+                              value={product.image || ''}
+                              onChange={(event) =>
+                                setProductDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, image: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                              placeholder="https://..."
+                            />
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeTab === 'plans' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-heading text-2xl text-slate-900">Pricing Matrix</h3>
+                      <p className="text-sm text-slate-500">Maintain monthly, quarterly, and yearly offer sets.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPlanDraft((prev) => [
+                          { id: createId(), name: '', type: 'monthly', price: '', features: [] },
+                          ...prev,
+                        ])
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Plan
+                    </button>
+                  </div>
+
+                  {filteredPlans.length === 0 && (
+                    <div className={card}>
+                      <p className="text-sm text-slate-500">No plans match your search.</p>
+                    </div>
+                  )}
+
+                  {filteredPlans.map((plan) => {
+                    const index = planDraft.findIndex((item) => item.id === plan.id);
+                    if (index === -1) return null;
+                    return (
+                      <article key={plan.id} className={card}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="font-heading text-xl text-slate-900">{plan.name || 'Untitled Plan'}</h4>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPlanDraft((prev) => {
+                                  const copy = cloneValue(prev[index]);
+                                  copy.id = createId();
+                                  copy.name = copy.name ? `${copy.name} Copy` : '';
+                                  return [copy, ...prev];
+                                })
+                              }
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary transition"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Duplicate
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPlanDraft((prev) => prev.filter((item) => item.id !== plan.id))}
+                              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Plan Name</label>
+                            <input
+                              value={plan.name}
+                              onChange={(event) =>
+                                setPlanDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, name: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Price</label>
+                            <input
+                              value={plan.price}
+                              onChange={(event) =>
+                                setPlanDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index ? { ...item, price: event.target.value } : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className={fieldLabel}>Cycle</label>
+                            <select
+                              value={plan.type}
+                              onChange={(event) =>
+                                setPlanDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? { ...item, type: event.target.value as 'monthly' | 'quarterly' | 'yearly' }
+                                      : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            >
+                              <option value="monthly">Monthly</option>
+                              <option value="quarterly">Quarterly</option>
+                              <option value="yearly">Yearly</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2 md:col-span-3">
+                            <label className={fieldLabel}>Features (comma separated)</label>
+                            <input
+                              value={plan.features.join(', ')}
+                              onChange={(event) =>
+                                setPlanDraft((prev) =>
+                                  prev.map((item, itemIndex) =>
+                                    itemIndex === index
+                                      ? {
+                                          ...item,
+                                          features: event.target.value
+                                            .split(',')
+                                            .map((feature) => feature.trim())
+                                            .filter((feature) => feature.length > 0),
+                                        }
+                                      : item
+                                  )
+                                )
+                              }
+                              className={textInput}
+                            />
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeTab === 'media' && (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-heading text-2xl text-slate-900">Media Library</h3>
+                    <p className="text-sm text-slate-500">Control all page images from one place.</p>
+                  </div>
+
+                  <div className="grid xl:grid-cols-2 gap-4">
+                    {mediaFields.map((field) => (
+                      <article key={field.key} className={card}>
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold text-slate-900">{field.label}</p>
+                          <p className="text-xs text-slate-500">{field.hint}</p>
+                          <input
+                            value={mediaDraft[field.key]}
+                            onChange={(event) =>
+                              setMediaDraft((prev) => ({
+                                ...prev,
+                                [field.key]: event.target.value,
+                              }))
+                            }
+                            className={textInput}
+                            placeholder="https://..."
+                          />
+                        </div>
+                        <div className="mt-3 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                          {mediaDraft[field.key] ? (
+                            <img src={mediaDraft[field.key]} alt={field.label} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">No image URL</div>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-
+          </section>
         </div>
-
-        {/* FOOTER */}
-        <div className="bg-slate-950 border-t border-white/10 p-6 flex justify-end sticky bottom-0 z-20 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
-          <button onClick={onClose} className="px-10 py-4 bg-transparent text-gray-500 font-bold hover:text-white transition-colors mr-2 uppercase tracking-widest text-sm">
-            Abort
-          </button>
-          <button onClick={handleSave} className="px-12 py-4 bg-primary text-slate-950 font-black tracking-[0.2em] uppercase rounded-full hover:bg-white shadow-[0_0_30px_rgba(56,189,248,0.3)] hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] transition-all flex items-center gap-3 active:scale-95 text-sm">
-            <Save className="w-5 h-5"/> Commit Overview
-          </button>
-        </div>
-
       </div>
     </div>
   );
+
+  return createPortal(panel, document.body);
 }

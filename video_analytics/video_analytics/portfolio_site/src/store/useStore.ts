@@ -2,8 +2,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface Plan { id: string; name: string; type: 'monthly' | 'quarterly' | 'yearly'; price: string; features: string[]; }
-export interface Product { id: string; name: string; description: string; longDescription: string; features: string[]; iconIndex?: number; }
-export interface TeamMember { id: string; name: string; role: string; slogan: string; details: string; }
+export interface Product { id: string; name: string; description: string; longDescription: string; features: string[]; iconIndex?: number; image?: string; }
+export interface TeamMember { id: string; name: string; role: string; slogan: string; details: string; image?: string; }
+export interface SiteMedia {
+  heroImage: string;
+  architectureImage: string;
+  industriesImage: string;
+  aboutImage: string;
+  productsHeroImage: string;
+  pricingImage: string;
+  contactImage: string;
+  teamDefaultImage: string;
+}
 
 interface AppState {
   companyName: string;
@@ -17,12 +27,41 @@ interface AppState {
   team: TeamMember[];
   products: Product[];
   plans: Plan[];
+  media: SiteMedia;
   
   updateCompanyDetails: (data: Partial<Pick<AppState, 'companyName' | 'tagline' | 'vision' | 'mission' | 'aboutText' | 'contactEmail' | 'contactPhone' | 'contactAddress'>>) => void;
   updateTeam: (team: TeamMember[]) => void;
   updateProducts: (products: Product[]) => void;
   updatePlans: (plans: Plan[]) => void;
+  updateMedia: (media: Partial<SiteMedia>) => void;
 }
+
+const mediaDefaults: SiteMedia = {
+  heroImage: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1800&q=80',
+  architectureImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=80',
+  industriesImage: 'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1800&q=80',
+  aboutImage: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&w=1600&q=80',
+  productsHeroImage: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1800&q=80',
+  pricingImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1800&q=80',
+  contactImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1800&q=80',
+  teamDefaultImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1200&q=80',
+};
+
+const productImageDefaults = [
+  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1535378273068-9bb67d5f51d6?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80',
+  'https://images.unsplash.com/photo-1518773553398-650c184e0bb3?auto=format&fit=crop&w=1400&q=80',
+];
+
+const teamImageDefaults = [
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1000&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1000&q=80',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=1000&q=80',
+];
 
 export const useStore = create<AppState>()(
   persist(
@@ -41,21 +80,24 @@ export const useStore = create<AppState>()(
           name: 'VRAJ PATEL', 
           role: 'CEO & Founder', 
           slogan: '"Execution over everything."', 
-          details: 'Pioneered EyeSpot\'s core vision. Expert in scaling AI enterprise infrastructure and spearheading strategic global deployments.' 
+          details: 'Pioneered EyeSpot\'s core vision. Expert in scaling AI enterprise infrastructure and spearheading strategic global deployments.',
+          image: teamImageDefaults[0], 
         },
         { 
           id: '2', 
           name: 'UTSAV GUPTA', 
           role: 'Chief Technology Officer', 
           slogan: '"Latency is the enemy of truth."', 
-          details: 'Architect of the zero-latency neural inference engine. Holds multiple optimizations accelerating spatial-temporal convolutional networks on edge hardware.' 
+          details: 'Architect of the zero-latency neural inference engine. Holds multiple optimizations accelerating spatial-temporal convolutional networks on edge hardware.',
+          image: teamImageDefaults[1], 
         },
         { 
           id: '3', 
           name: 'SANDIP RANGALIYA', 
           role: 'Core AI Engineer', 
           slogan: '"Data never lies."', 
-          details: 'Specializes in behavioral biometrics and unstructured data pipelines. Designed the proprietary Loitering & Intrusion algorithms operating at >99% accuracy.' 
+          details: 'Specializes in behavioral biometrics and unstructured data pipelines. Designed the proprietary Loitering & Intrusion algorithms operating at >99% accuracy.',
+          image: teamImageDefaults[2], 
         }
       ],
       products: [
@@ -65,7 +107,8 @@ export const useStore = create<AppState>()(
           description: 'Tracks localized skeletal movement vectors to identify concealment gestures before merchandise leaves the shelf.', 
           longDescription: 'Our flagship predictive module utilizes an advanced skeleton-tracking heuristic combined with object-interaction recognition. By analyzing the micro-movements associated with item grabbing and concealment, EyeSpot accurately triggers an actionable alert literally before the suspect exits the premises.',
           features: ['Skeletal Vector Analysis', 'Real-time Object Interaction Matching', 'Concealment Confidence Scoring'],
-          iconIndex: 0 
+          iconIndex: 0,
+          image: productImageDefaults[0], 
         },
         { 
           id: '2', 
@@ -73,7 +116,8 @@ export const useStore = create<AppState>()(
           description: 'Draw infinite virtual tripwires with autonomous PTZ tracking upon breach detection.', 
           longDescription: 'Establish military-grade virtual perimeters instantly. Our intrusion engine distinguishes between harmless environmental movement (animals, shadows, wind) and actual human or vehicular threats with zero false positives. It automatically syncs with Pan-Tilt-Zoom (PTZ) cameras to track the intruder hands-free.',
           features: ['Infinite Virtual Boundaries', 'Autonomous PTZ Handoff', 'Zero False Positives via Object Classification'],
-          iconIndex: 1 
+          iconIndex: 1,
+          image: productImageDefaults[1], 
         },
         { 
           id: '3', 
@@ -81,7 +125,8 @@ export const useStore = create<AppState>()(
           description: 'Maintains unique identification of targets across hundreds of unconnected camera streams.', 
           longDescription: 'Person Re-Identification (ReID) across blind spots without using facial recognition. By analyzing clothing texture, gait, and macroscopic behavior, our AI can persist a physical profile across a massive campus composed of disparate, overlapping, or totally separated camera feeds.',
           features: ['Non-Facial Re-Identification', 'Cross-Camera Spatial Tracking', 'Historical Route Tracing'],
-          iconIndex: 2 
+          iconIndex: 2,
+          image: productImageDefaults[2], 
         },
         { 
           id: '4', 
@@ -89,7 +134,8 @@ export const useStore = create<AppState>()(
           description: 'Thermal-fusion overlays allowing zero-light detection of anomalies in critical infrastructure.', 
           longDescription: 'Designed for absolute pitch-black environments. EyeSpot merges thermal metadata with optical sensors to provide a unified threat view. Ideal for vast power grids, server farms, and borders, ensuring that no organic or mechanical heat signature goes unnoticed.',
           features: ['Multispectral Data Fusion', 'Pitch-Black Anomaly Detection', 'Equipment Overheat Pre-Alerts'],
-          iconIndex: 3 
+          iconIndex: 3,
+          image: productImageDefaults[3], 
         },
         { 
           id: '5', 
@@ -97,7 +143,8 @@ export const useStore = create<AppState>()(
           description: 'Grab-and-go analytics correlating object interaction for frictionless retail.', 
           longDescription: 'Redefining the shopping experience by mapping products taken directly off shelves to a customer\'s virtual cart using vision alone. Forget scanning. Walk in, grab what you need, and walk out. Our multi-angle camera triangulation engine ensures billing accuracy.',
           features: ['No-Barcode Grasp Verification', 'Crowd-Occlusion Resistant', 'Instantaneous Billing Sync'],
-          iconIndex: 4 
+          iconIndex: 4,
+          image: productImageDefaults[4], 
         },
         { 
           id: '6', 
@@ -105,7 +152,8 @@ export const useStore = create<AppState>()(
           description: 'Captures and cross-references plates at 150mph with instant criminal database matching.', 
           longDescription: 'A robust Automatic License Plate Recognition (ALPR) system engineered to capture plates at extreme speeds and terrible lighting. It instantly cross-references read characters against local hotlists and criminal databases, notifying authorities covertly within milliseconds.',
           features: ['150mph High-Speed Capture', 'Sub-Optimal Weather Correction', 'Instant Database Cross-Referencing'],
-          iconIndex: 5 
+          iconIndex: 5,
+          image: productImageDefaults[5], 
         },
         { 
           id: '7', 
@@ -113,7 +161,8 @@ export const useStore = create<AppState>()(
           description: 'Personalized AI modeling. We ingest your proprietary video data and train bespoke logic models for highly specific use cases.', 
           longDescription: 'Do you have a use case that doesn\'t fit standard security protocols? EyeSpot\'s dedicated data science team will build, annotate, and train a fully personalized neural pathway. From factory defect detection to highly specific compliance monitoring, we build AI tailored exclusively to your visual environment.',
           features: ['Proprietary Data Ingestion & Annotation', 'Hyper-Parameter Fine Tuning', 'White-Glove Deployment & Inference Hardware Setup'],
-          iconIndex: 0 
+          iconIndex: 0,
+          image: productImageDefaults[6], 
         },
       ],
       plans: [
@@ -132,13 +181,15 @@ export const useStore = create<AppState>()(
         { id: '11', name: 'Grid', type: 'yearly', price: '$45,000', features: ['Unlimited AI Nodes', 'Full Behavioral Suite', 'API Interconnectivity', 'On-Site Integration'] },
         { id: '12', name: 'Sovereign', type: 'yearly', price: 'Custom', features: ['City-Wide Grid', 'Air-Gapped Ops', 'Custom Model Training Included', 'Hardware Provisioning'] }
       ],
+      media: mediaDefaults,
       updateCompanyDetails: (data) => set((state) => ({ ...state, ...data })),
       updateTeam: (team) => set({ team }),
       updateProducts: (products) => set({ products }),
       updatePlans: (plans) => set({ plans }),
+      updateMedia: (media) => set((state) => ({ media: { ...state.media, ...media } })),
     }),
     {
-      name: 'eyespot-storage-v7', // Bump version forcefully
+      name: 'eyespot-storage-v8',
     }
   )
 );

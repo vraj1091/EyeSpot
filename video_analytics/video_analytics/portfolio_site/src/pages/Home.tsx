@@ -5,163 +5,220 @@ import { ChevronRight, Cpu, ShieldAlert, Server, Lock, Building2, Car, Factory, 
 import SEO from '../components/SEO';
 
 const pageVariants = {
-  initial: { opacity: 0, filter: 'blur(20px)', scale: 0.95 },
-  in: { opacity: 1, filter: 'blur(0px)', scale: 1, transition: { duration: 0.8, ease: "easeOut" } },
-  out: { opacity: 0, filter: 'blur(20px)', scale: 1.05, transition: { duration: 0.4, ease: "easeIn" } }
+  initial: { opacity: 0, y: 16 },
+  in: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  out: { opacity: 0, y: -12, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
 export default function Home() {
-  const { tagline, companyName } = useStore();
+  const { tagline, companyName, media } = useStore();
+  const metrics = [
+    { label: 'Latency Target', val: '< 15ms' },
+    { label: 'Uptime Protocol', val: '99.999%' },
+    { label: 'Active Streams', val: '500k+' },
+    { label: 'False Alerts', val: '0.01%' },
+  ];
+
+  const architecture = [
+    {
+      icon: Server,
+      title: 'Ingestion Layer',
+      description:
+        'Connects directly to existing IP cameras via RTSP/ONVIF. No new physical hardware required. Feeds stream instantly into local processing nodes without hitting the internet.',
+    },
+    {
+      icon: Cpu,
+      title: 'Neural Inference',
+      description:
+        'Executes highly specialized spatio-temporal graph convolutional networks to map human skeleton vectors and trace object interaction paths instantaneously on local edge silicon.',
+    },
+    {
+      icon: Target,
+      title: 'Action Command',
+      description:
+        'Triggers programmatic webhooks, dispatches SMS alerts to security teams, or takes secure control of PTZ cameras to autonomously follow suspects through restricted zones.',
+    },
+  ];
+
+  const industries = [
+    {
+      icon: Building2,
+      title: 'Commercial Retail',
+      description:
+        'Eliminate shrinkage with predictive shoplifting modules mapping concealment gestures. Ensure frictionless autonomous checkout using multi-camera hand-to-shelf spatial triangulation.',
+    },
+    {
+      icon: Factory,
+      title: 'Critical Infrastructure',
+      description:
+        'Deploy air-gapped thermal fusion detection to guard volatile chemical pipelines and server grids. Secure total perimeter immunity in sub-zero and absolutely zero-light scenarios.',
+    },
+    {
+      icon: Car,
+      title: 'Smart Urban Mobility',
+      description:
+        'Correlate millions of license plates moving at 150mph across city sectors. Track sovereign threats traversing interstates via high-speed database cross-referencing and crowd-density mapping.',
+    },
+    {
+      icon: Lock,
+      title: 'Secure Governance',
+      description:
+        'Fully encrypted, on-premises sovereign networks providing infinite cold-storage retention. Person Re-Identification ensuring high-value target tracing without relying on compromised facial vectors.',
+    },
+  ];
 
   return (
-    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-40 pb-20">
-      <SEO 
-        title={`${companyName} - World's Most Advanced Video Analytics OS`} 
+    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-16 pb-20">
+      <SEO
+        title={`${companyName} - World's Most Advanced Video Analytics OS`}
         description={tagline}
         keywords="video analytics, edge AI, computer vision, security AI, real-time analytics, facial recognition, shoplifting detection"
       />
-      
-      {/* 1. HERO SECTION */}
-      <section className="min-h-[85vh] flex flex-col justify-center items-center text-center relative mt-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-primary/10 blur-[200px] rounded-full pointer-events-none z-0 mix-blend-screen" />
-        
-        <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} className="space-y-10 max-w-6xl z-10 relative px-4">
-          
-          <div className="inline-flex self-center items-center gap-4 px-8 py-3 rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-            <span className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_15px_#38bdf8]" />
-            <span className="text-sm md:text-base font-black tracking-[0.2em] text-primary uppercase">System Live: Deep Inference Engine V4.2</span>
-          </div>
-
-          <h1 className="text-6xl sm:text-7xl lg:text-[10rem] font-black leading-[0.9] tracking-tighter">
-            <span className="text-white drop-shadow-2xl">{companyName}</span><br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-primary to-slate-800 drop-shadow-2xl">Vision OS.</span>
-          </h1>
-          
-          <p className="text-xl sm:text-2xl md:text-4xl text-gray-400 font-light max-w-5xl mx-auto leading-relaxed mt-8 md:mt-12 bg-slate-900/40 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/5 backdrop-blur-md">
-            {tagline} We process raw optical data at the physical edge to eliminate cloud latency, providing military-grade predictive threat detection globally.
-          </p>
-          
-          <div className="pt-12 md:pt-16 flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
-            <Link to="/products" className="group flex items-center justify-center gap-4 bg-white text-slate-950 w-full sm:w-auto px-8 py-5 md:px-12 md:py-6 rounded-full font-black tracking-[0.2em] uppercase hover:bg-primary transition-all shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:shadow-[0_0_80px_rgba(56,189,248,0.5)] text-sm md:text-lg">
-              Initialize Modules <ChevronRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-3 transition-transform" />
-            </Link>
-            <Link to="/contact" className="w-full sm:w-auto text-center px-8 py-5 md:px-12 md:py-6 rounded-full font-black tracking-[0.2em] uppercase text-gray-300 hover:text-white border border-white/20 hover:border-white/50 hover:bg-white/5 transition-all text-sm md:text-lg shadow-lg">
-              Request Uplink
-            </Link>
-          </div>
-          
-          {/* Key Metrics Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-24 border-t border-white/10 mt-20">
-            {[
-              { label: 'Latency Target', val: '< 15ms' },
-              { label: 'Uptime Protocol', val: '99.999%' },
-              { label: 'Active Streams', val: '500k+' },
-              { label: 'False Alerts', val: '0.01%' }
-            ].map((metric, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="text-3xl md:text-5xl font-black text-white drop-shadow-lg">{metric.val}</div>
-                <div className="text-xs md:text-sm font-bold tracking-widest text-primary uppercase opacity-80">{metric.label}</div>
+      <section className="pt-8">
+        <div className="section-card overflow-hidden p-2">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-2">
+            <div className="p-8 md:p-12 lg:p-14">
+              <span className="premium-chip">Enterprise Video Analytics Platform</span>
+              <h1 className="mt-5 font-heading text-4xl md:text-6xl text-slate-900 font-semibold leading-[1.05] text-balance">
+                Transform Peripheral CCTV Footage Into Actionable Insights
+              </h1>
+              <p className="mt-6 text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                {tagline} We process raw optical data at the physical edge to eliminate cloud latency,
+                providing military-grade predictive threat detection globally.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/products"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-white font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  Explore Modules <ChevronRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-slate-700 font-semibold hover:border-primary hover:text-primary transition-colors"
+                >
+                  Book a Free Demo
+                </Link>
               </div>
-            ))}
+              <div className="mt-8 flex flex-wrap gap-2">
+                <span className="premium-chip">Retail</span>
+                <span className="premium-chip">Manufacturing</span>
+                <span className="premium-chip">Smart Cities</span>
+                <span className="premium-chip">Public Sector</span>
+              </div>
+            </div>
+
+            <div className="relative min-h-[420px] lg:min-h-full rounded-[24px] overflow-hidden">
+              <img src={media.heroImage} alt="Security analytics monitoring wall" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/35 to-slate-950/10" />
+              <div className="absolute inset-x-4 bottom-4 grid grid-cols-2 gap-3">
+                {metrics.map((metric) => (
+                  <div key={metric.label} className="rounded-xl border border-white/15 bg-slate-900/45 backdrop-blur-md p-3 text-white">
+                    <p className="font-heading text-xl font-semibold">{metric.val}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-wider text-slate-300">{metric.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-
-        </motion.div>
-      </section>
-
-      {/* SECURE PARTNERS BANNER */}
-      <section className="relative z-10 py-10 border-y border-white/5 bg-slate-950/50 backdrop-blur-sm overflow-hidden">
-        <p className="text-center text-xs font-black tracking-[0.4em] text-gray-600 uppercase mb-10">Trusted By Global Security Coalitions</p>
-        <div className="flex justify-center flex-wrap gap-12 md:gap-24 opacity-40 grayscale items-center px-4">
-          <div className="text-2xl font-black tracking-tighter">AERO<span className="font-light">DEFENSE</span></div>
-          <div className="text-2xl font-black tracking-widest uppercase">Nexus GRID</div>
-          <div className="text-2xl font-black tracking-tighter italic">Vanguard Corp.</div>
-          <div className="text-2xl font-serif font-black tracking-widest text-transparent styling-stroke border-white">FEDERAL RESERVE</div>
-          <div className="text-2xl font-black tracking-tighter decoration-4 underline">QUANTUM</div>
         </div>
       </section>
 
-      {/* 2. CORE ARCHITECTURE */}
-      <section className="max-w-7xl mx-auto px-6 relative z-10 pt-20">
-        <div className="text-center space-y-6 md:space-y-8 mb-16 md:mb-24">
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent drop-shadow-md leading-tight">The Edge Architecture</h2>
-          <p className="text-lg md:text-2xl text-gray-400 font-light max-w-4xl mx-auto leading-relaxed">
-            Legacy CCTV systems are passive observation tools. {companyName} transforms them into an intelligent neural net that actively dissects physical environments in real-time.
-          </p>
-        </div>
-        
-        <div className="grid lg:grid-cols-3 gap-12">
-          {[ 
-            { i: Server, t: 'Ingestion Layer', d: 'Connects directly to existing IP cameras via RTSP/ONVIF. No new physical hardware required. Feeds stream instantly into local processing nodes without hitting the internet.' }, 
-            { i: Cpu, t: 'Neural Inference', d: 'Executes highly specialized spatio-temporal graph convolutional networks to map human skeleton vectors and trace object interaction paths instantaneously on local edge silicon.' }, 
-            { i: Target, t: 'Action Command', d: 'Triggers programmatic webhooks, dispatches SMS alerts to security teams, or takes secure control of PTZ cameras to autonomously follow suspects through restricted zones.' }
-          ].map((Feat, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-50px' }} transition={{ delay: idx * 0.2 }} className="glass-panel p-8 md:p-14 rounded-[2rem] md:rounded-[3rem] border-white/10 hover:border-primary/40 transition-colors group bg-slate-900/60 shadow-[0_30px_60px_rgba(0,0,0,0.4)] hover:-translate-y-4 duration-500">
-              <div className="flex justify-between items-start mb-10 md:mb-12">
-                <div className="w-24 h-24 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-primary/20 transition-all scale-110 group-hover:rotate-12 shadow-inner">
-                  <Feat.i className="w-12 h-12 text-white group-hover:text-primary transition-colors drop-shadow-md" />
-                </div>
-                <div className="text-7xl font-black text-white/5 font-sans group-hover:text-primary/10 transition-colors">0{idx+1}</div>
-              </div>
-              <h3 className="text-3xl lg:text-4xl font-black tracking-tight mb-6 text-white leading-tight">{Feat.t}</h3>
-              <p className="text-gray-400 leading-relaxed text-xl font-light">{Feat.d}</p>
-            </motion.div>
+      <section className="section-card p-6 md:p-8">
+        <p className="muted-label text-center">Trusted By Security And Operations Teams</p>
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
+          {['AERODEFENSE', 'NEXUS GRID', 'VANGUARD', 'FEDERAL GROUP', 'QUANTUM'].map((name) => (
+            <div key={name} className="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center text-xs md:text-sm font-semibold text-slate-600 shadow-sm">
+              {name}
+            </div>
           ))}
         </div>
       </section>
 
-      {/* 3. INDUSTRY VERTICALS */}
-      <section className="relative w-full border-y border-white/10 bg-slate-950/80 backdrop-blur-md py-40 z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-[800px] bg-gradient-to-b from-transparent via-primary/5 to-transparent pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="space-y-6 md:space-y-8 mb-16 md:mb-24 max-w-4xl">
-            <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white leading-none">Dominate Every Environment</h2>
-            <p className="text-lg md:text-2xl text-gray-400 font-light leading-relaxed">
-              Our scalable artificial intelligence protocols are explicitly trained to conquer the unique physical challenges of enterprise-class sectors.
+      <section className="section-card p-8 md:p-10">
+        <div className="grid xl:grid-cols-[0.92fr_1.08fr] gap-8">
+          <div className="space-y-5">
+            <p className="muted-label">What Is {companyName}?</p>
+            <h2 className="section-title">The Edge Architecture</h2>
+            <p className="text-slate-600 leading-relaxed">
+              Legacy CCTV systems are passive observation tools. {companyName} transforms them into an intelligent
+              neural net that actively dissects physical environments in real-time.
+            </p>
+            <div className="image-frame h-72">
+              <img src={media.architectureImage} alt="Edge AI architecture" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 to-transparent" />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-1 gap-5">
+            {architecture.map((item, index) => (
+              <article key={item.title} className="rounded-2xl border border-white/60 p-5 bg-white/80 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.55)]">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">0{index + 1}</p>
+                </div>
+                <h3 className="mt-4 font-heading text-2xl text-slate-900 font-semibold">{item.title}</h3>
+                <p className="mt-3 text-sm text-slate-600 leading-relaxed">{item.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-card overflow-hidden p-0">
+        <div className="relative h-72 md:h-80">
+          <img src={media.industriesImage} alt="Urban monitoring and smart infrastructure" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-900/60 to-slate-900/25" />
+          <div className="absolute inset-0 p-8 md:p-10 flex flex-col justify-center max-w-3xl">
+            <p className="muted-label text-slate-200">Industries We Serve</p>
+            <h2 className="mt-3 font-heading text-3xl md:text-5xl font-semibold text-white">Dominate Every Environment</h2>
+            <p className="mt-4 text-slate-200/90 leading-relaxed">
+              Our scalable artificial intelligence protocols are explicitly trained to conquer the unique physical
+              challenges of enterprise-class sectors.
             </p>
           </div>
+        </div>
+        <div className="p-6 md:p-8 grid md:grid-cols-2 gap-5 bg-white/80">
+          {industries.map((industry, index) => (
+            <article key={industry.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="w-11 h-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                  <industry.icon className="w-5 h-5" />
+                </div>
+                <p className="font-heading text-2xl text-slate-300 font-semibold">0{index + 1}</p>
+              </div>
+              <h3 className="mt-4 font-heading text-2xl text-slate-900 font-semibold">{industry.title}</h3>
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">{industry.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-2 gap-16 border-t border-white/10 pt-20">
-            <div className="space-y-8 p-12 rounded-[3.5rem] bg-slate-900/40 hover:bg-slate-900 transition-colors border border-transparent hover:border-white/10 shadow-2xl hover:-translate-y-2 duration-500">
-              <Building2 className="w-20 h-20 text-primary drop-shadow-[0_0_15px_#38bdf8]" />
-              <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight">Commercial Retail</h3>
-              <p className="text-gray-400 text-xl leading-loose font-light">Eliminate shrinkage with predictive shoplifting modules mapping concealment gestures. Ensure frictionless autonomous checkout using multi-camera hand-to-shelf spatial triangulation.</p>
+      <section className="section-card p-2 overflow-hidden">
+        <div className="grid lg:grid-cols-[0.7fr_1.3fr] gap-2">
+          <div className="image-frame min-h-[320px]">
+            <img src={media.contactImage} alt="Security command operations room" />
+          </div>
+          <div className="rounded-[24px] bg-slate-900 text-white p-8 md:p-12">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6 text-accent" />
             </div>
-            <div className="space-y-8 p-12 rounded-[3.5rem] bg-slate-900/40 hover:bg-slate-900 transition-colors border border-transparent hover:border-white/10 shadow-2xl hover:-translate-y-2 duration-500 delay-75">
-              <Factory className="w-20 h-20 text-accent drop-shadow-[0_0_15px_#818cf8]" />
-              <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight">Critical Infrastructure</h3>
-              <p className="text-gray-400 text-xl leading-loose font-light">Deploy air-gapped thermal fusion detection to guard volatile chemical pipelines and server grids. Secure total perimeter immunity in sub-zero and absolutely zero-light scenarios.</p>
-            </div>
-            <div className="space-y-8 p-12 rounded-[3.5rem] bg-slate-900/40 hover:bg-slate-900 transition-colors border border-transparent hover:border-white/10 shadow-2xl hover:-translate-y-2 duration-500">
-              <Car className="w-20 h-20 text-primary drop-shadow-[0_0_15px_#38bdf8]" />
-              <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight">Smart Urban Mobility</h3>
-              <p className="text-gray-400 text-xl leading-loose font-light">Correlate millions of license plates moving at 150mph across city sectors. Track sovereign threats traversing interstates via high-speed database cross-referencing and crowd-density mapping.</p>
-            </div>
-            <div className="space-y-8 p-12 rounded-[3.5rem] bg-slate-900/40 hover:bg-slate-900 transition-colors border border-transparent hover:border-white/10 shadow-2xl hover:-translate-y-2 duration-500 delay-75">
-              <Lock className="w-20 h-20 text-accent drop-shadow-[0_0_15px_#818cf8]" />
-              <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight">Secure Governance</h3>
-              <p className="text-gray-400 text-xl leading-loose font-light">Fully encrypted, on-premises sovereign networks providing infinite cold-storage retention. Person Re-Identification ensuring high-value target tracing without relying on compromised facial vectors.</p>
-            </div>
+            <h2 className="mt-5 font-heading text-3xl md:text-5xl font-semibold">Total Data Sovereignty</h2>
+            <p className="mt-4 text-slate-300 leading-relaxed">
+              {companyName} never streams your raw video feeds to external clouds. Absolute processing happens directly
+              inside your physical network boundaries, ensuring instant compliance with GDPR, HIPAA, and federal
+              communications integrity regulations.
+            </p>
+            <Link
+              to="/contact"
+              className="mt-8 inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-5 py-3 font-semibold hover:bg-slate-100 transition-colors"
+            >
+              Inquire For Enterprise Audit <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* 4. SECURITY & COMPLIANCE CTA */}
-      <section className="max-w-6xl mx-auto px-6 text-center space-y-16 relative z-10 pb-32 pt-20">
-        <div className="inline-flex items-center justify-center p-6 md:p-8 bg-white/5 rounded-full mb-6 md:mb-8 border border-white/10 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-          <ShieldAlert className="w-12 h-12 md:w-16 md:h-16 text-accent drop-shadow-[0_0_15px_#818cf8]" />
-        </div>
-        <h2 className="text-4xl sm:text-5xl md:text-[5rem] font-black text-white leading-none tracking-tighter">Total Data Sovereignty</h2>
-        <p className="text-lg sm:text-2xl md:text-3xl text-gray-400 font-light leading-relaxed max-w-4xl mx-auto">
-          {companyName} never streams your raw video feeds to external clouds. Absolute processing happens directly inside your physical network boundaries, ensuring instant compliance with GDPR, HIPAA, and federal communications integrity regulations.
-        </p>
-        <div className="flex justify-center pt-10 md:pt-16">
-          <Link to="/contact" className="w-full sm:w-auto px-8 py-6 md:px-16 md:py-8 bg-white text-slate-950 font-black tracking-[0.2em] uppercase rounded-[2rem] md:rounded-[3rem] hover:bg-accent hover:text-white shadow-[0_15px_40px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_60px_rgba(129,140,248,0.6)] transition-all text-sm sm:text-lg md:text-2xl hover:scale-105 active:scale-95 duration-300 flex items-center justify-center gap-4">
-            Inquire For Enterprise Audit <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
-          </Link>
-        </div>
-      </section>
-
     </motion.div>
   );
 }

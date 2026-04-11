@@ -1,22 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .glass-panel {
-    @apply bg-slate-900/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+  }
+
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    font-family: 'Public Sans', sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 100px;
+@layer components {
+  .section-card {
+    @apply rounded-[28px] border border-white/60 bg-white/75 backdrop-blur-xl shadow-[0_30px_80px_-40px_rgba(15,23,42,0.45)];
+  }
+
+  .muted-label {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-slate-500;
+  }
+
+  .section-title {
+    @apply font-heading text-3xl md:text-5xl font-semibold text-slate-900 leading-tight;
+  }
+
+  .image-frame {
+    @apply relative overflow-hidden rounded-[24px] border border-white/40 bg-slate-200;
+  }
+
+  .image-frame img {
+    @apply w-full h-full object-cover transition-transform duration-700;
+  }
+
+  .image-frame:hover img {
+    transform: scale(1.06);
+  }
+
+  .premium-chip {
+    @apply inline-flex items-center rounded-full bg-white/70 border border-white px-3 py-1 text-[11px] font-semibold tracking-wide text-slate-600;
+  }
 }
 
-body {
-  margin: 0;
-  overflow-x: hidden;
-  background-color: #020617; /* Very deep dark */
+@layer utilities {
+  .site-shell {
+    @apply w-full max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+
+  .glass-panel {
+    @apply bg-white/90 backdrop-blur-xl border border-slate-200 shadow-card;
+  }
+
+  .grid-pattern {
+    background-image:
+      linear-gradient(to right, rgba(148, 163, 184, 0.16) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.16) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
 #root {
@@ -26,23 +87,17 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
+  background: linear-gradient(120deg, #0f172a 0%, #0d4ed8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .text-gradient-purple {
-  background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%);
+  background: linear-gradient(120deg, #0d4ed8 0%, #f97316 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Sub-pixel anti-aliasing */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 ::selection {
-  background: rgba(56, 189, 248, 0.3);
-  color: #fff;
+  background: rgba(13, 78, 216, 0.2);
+  color: #0f172a;
 }

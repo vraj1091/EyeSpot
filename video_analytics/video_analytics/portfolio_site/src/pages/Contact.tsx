@@ -1,103 +1,117 @@
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const pageVariants = {
-  initial: { opacity: 0, filter: 'blur(20px)', scale: 0.95 },
-  in: { opacity: 1, filter: 'blur(0px)', scale: 1, transition: { duration: 0.8, ease: "easeOut" } },
-  out: { opacity: 0, filter: 'blur(20px)', scale: 1.05, transition: { duration: 0.4, ease: "easeIn" } }
+  initial: { opacity: 0, y: 16 },
+  in: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  out: { opacity: 0, y: -12, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
 export default function Contact() {
-  const { contactEmail, contactPhone, contactAddress } = useStore();
+  const { contactEmail, contactPhone, contactAddress, companyName, media } = useStore();
 
   return (
-    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-40 pb-20 pt-20">
-      
-      <section className="text-center max-w-5xl mx-auto space-y-6 md:space-y-10 relative z-10 px-4">
-        <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-5xl sm:text-7xl lg:text-9xl font-black bg-clip-text text-transparent bg-gradient-to-l from-white via-primary to-slate-900 drop-shadow-xl p-2">
-          Initialize Uplink
-        </motion.h1>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-xl sm:text-2xl md:text-3xl text-gray-400 font-light leading-relaxed">
-          Request physical architecture demonstration, access API endpoints, or speak directly with deployment engineers.
-        </motion.p>
+    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-16 pb-20 pt-4">
+      <SEO
+        title={`Contact ${companyName} | Book a Video Analytics Demo`}
+        description="Request a product walkthrough, architecture consultation, or deployment planning session."
+        keywords="video analytics demo, contact security AI team, edge AI consultation"
+      />
+
+      <section className="section-card p-2 overflow-hidden">
+        <div className="grid lg:grid-cols-[1fr_1fr] gap-2">
+          <div className="p-8 md:p-12 flex flex-col justify-center">
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-heading text-4xl md:text-6xl font-semibold text-slate-900 leading-tight">
+              Initialize Uplink
+            </motion.h1>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="mt-5 text-slate-600 leading-relaxed max-w-3xl">
+              Request physical architecture demonstration, access API endpoints, or speak directly with deployment engineers.
+            </motion.p>
+          </div>
+          <div className="image-frame min-h-[320px]">
+            <img src={media.contactImage} alt="Contact and operations center" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 to-transparent" />
+          </div>
+        </div>
       </section>
 
-      <section className="grid lg:grid-cols-2 gap-16 md:gap-20 max-w-[1200px] mx-auto items-stretch px-4">
-        
-        <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: '-50px' }} className="space-y-12 md:space-y-16">
-          <div className="space-y-4 md:space-y-6 text-center lg:text-left">
-            <h3 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">Direct Vectors</h3>
-            <p className="text-gray-400 text-xl md:text-2xl font-light leading-relaxed">Establish a secure comms channel to schedule pilot mapping.</p>
+      <section className="grid lg:grid-cols-2 gap-5 items-stretch">
+        <motion.div initial={{ opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="section-card p-7 md:p-8">
+          <div>
+            <p className="muted-label">Direct Vectors</p>
+            <h2 className="mt-3 font-heading text-3xl md:text-4xl font-semibold text-slate-900">Contact Information</h2>
+            <p className="mt-3 text-slate-600 leading-relaxed">
+              Establish a secure communication channel to schedule a pilot deployment.
+            </p>
           </div>
-          
-          <div className="space-y-10 pt-10">
-            <div className="flex items-start gap-8 group cursor-pointer">
-              <div className="bg-slate-900 border border-white/10 p-6 rounded-[2rem] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500 group-hover:border-primary/50 shadow-2xl">
-                <Mail className="w-10 h-10 text-primary drop-shadow-[0_0_10px_#38bdf8]" />
+
+          <div className="mt-8 space-y-5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <Mail className="w-5 h-5" />
               </div>
-              <div className="pt-2">
-                <div className="text-sm font-black text-primary/70 uppercase tracking-[0.3em] mb-2">Network Protocol</div>
-                <div className="text-2xl font-medium text-white tracking-wide group-hover:text-primary transition-colors">{contactEmail}</div>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-8 group cursor-pointer">
-              <div className="bg-slate-900 border border-white/10 p-6 rounded-[2rem] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500 group-hover:border-primary/50 shadow-2xl">
-                <Phone className="w-10 h-10 text-primary drop-shadow-[0_0_10px_#38bdf8]" />
-              </div>
-              <div className="pt-2">
-                <div className="text-sm font-black text-primary/70 uppercase tracking-[0.3em] mb-2">Voice Channel</div>
-                <div className="text-xl md:text-2xl font-medium text-white tracking-wide group-hover:text-primary transition-colors">{contactPhone}</div>
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase text-slate-500">Network Protocol</p>
+                <p className="mt-1 text-slate-900 font-medium">{contactEmail}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-8 group cursor-pointer">
-              <div className="bg-slate-900 border border-white/10 p-6 rounded-[2rem] group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500 group-hover:border-primary/50 shadow-2xl">
-                <MapPin className="w-10 h-10 text-primary drop-shadow-[0_0_10px_#38bdf8]" />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <Phone className="w-5 h-5" />
               </div>
-              <div className="pt-2 max-w-sm">
-                <div className="text-sm font-black text-primary/70 uppercase tracking-[0.3em] mb-2">HQ Coordinates</div>
-                <div className="text-xl font-light leading-relaxed text-gray-300 group-hover:text-white transition-colors">{contactAddress}</div>
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase text-slate-500">Voice Channel</p>
+                <p className="mt-1 text-slate-900 font-medium">{contactPhone}</p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase text-slate-500">HQ Coordinates</p>
+                <p className="mt-1 text-slate-700 leading-relaxed">{contactAddress}</p>
               </div>
             </div>
           </div>
         </motion.div>
-        
-        <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: '-50px' }}>
-          <div className="glass-panel p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] border-white/10 space-y-8 md:space-y-12 relative overflow-hidden h-full shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
-            <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-            <h3 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-4 relative z-10 text-center lg:text-left">Neural Transmission</h3>
-            
-            <form className="space-y-6 md:space-y-8 relative z-10" onSubmit={e => e.preventDefault()}>
+
+        <motion.div initial={{ opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+          <div className="section-card p-7 md:p-8 h-full bg-gradient-to-br from-white to-slate-50">
+            <h3 className="font-heading text-3xl md:text-4xl font-semibold text-slate-900">Neural Transmission</h3>
+
+            <form className="space-y-4 mt-6" onSubmit={e => e.preventDefault()}>
               <div>
-                <input 
-                  type="text" 
-                  placeholder="Identification / Unit Name" 
-                  className="w-full bg-slate-900/60 pt-6 pb-5 px-8 rounded-2xl border border-white/5 text-white placeholder-gray-500 focus:border-primary/50 focus:bg-slate-900 shadow-inner outline-none transition-all text-lg font-light tracking-wide"
+                <input
+                  type="text"
+                  placeholder="Identification / Unit Name"
+                  className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors"
                 />
               </div>
               <div>
-                <input 
-                  type="email" 
-                  placeholder="Secure Return Address" 
-                  className="w-full bg-slate-900/60 pt-6 pb-5 px-8 rounded-2xl border border-white/5 text-white placeholder-gray-500 focus:border-primary/50 focus:bg-slate-900 shadow-inner outline-none transition-all text-lg font-light tracking-wide"
+                <input
+                  type="email"
+                  placeholder="Secure Return Address"
+                  className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors"
                 />
               </div>
               <div>
-                <textarea 
-                  placeholder="Operational Objective Parameters" 
+                <textarea
+                  placeholder="Operational Objective Parameters"
                   rows={6}
-                  className="w-full bg-slate-900/60 pt-6 pb-5 px-8 rounded-[2rem] border border-white/5 text-white placeholder-gray-500 focus:border-primary/50 focus:bg-slate-900 shadow-inner outline-none transition-all resize-none text-lg font-light tracking-wide"
+                  className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors resize-none"
                 />
               </div>
-              <button className="w-full py-5 md:py-6 rounded-2xl font-black tracking-widest uppercase text-base md:text-xl bg-white text-slate-950 hover:bg-primary shadow-[0_15px_30px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_50px_rgba(56,189,248,0.5)] flex items-center justify-center gap-2 md:gap-4 transition-all duration-500 hover:scale-[1.02]">
-                <Send className="w-5 h-5 md:w-6 h-6" /> Beam Data
+              <button className="w-full py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors">
+                <Send className="w-4 h-4" /> Beam Data
               </button>
             </form>
           </div>
         </motion.div>
-        
       </section>
     </motion.div>
   );
