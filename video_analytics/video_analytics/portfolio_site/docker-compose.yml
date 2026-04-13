@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  portfolio-api:
+    build:
+      context: ./mini_api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - portfolio_api_data:/data
+
   eyespot-frontend:
     build:
       context: .
@@ -8,9 +16,12 @@ services:
       args:
         VITE_PORTFOLIO_API_BASE: ${VITE_PORTFOLIO_API_BASE:-/api}
         VITE_ENABLE_PORTFOLIO_REMOTE_SYNC: ${VITE_ENABLE_PORTFOLIO_REMOTE_SYNC:-true}
-        PORTFOLIO_API_UPSTREAM: ${PORTFOLIO_API_UPSTREAM:-http://host.docker.internal:8000}
+        PORTFOLIO_API_UPSTREAM: ${PORTFOLIO_API_UPSTREAM:-http://portfolio-api:8000}
+    depends_on:
+      - portfolio-api
     ports:
       - "${FRONTEND_PORT:-3000}:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
+
+volumes:
+  portfolio_api_data:
