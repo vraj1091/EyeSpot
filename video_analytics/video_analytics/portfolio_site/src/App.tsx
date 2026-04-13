@@ -4,12 +4,16 @@ import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminPanel from './components/AdminPanel';
+import ScrollToTop from './components/ScrollToTop';
 
 import Home from './pages/Home';
 import About from './pages/About';
 import Products from './pages/Products';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
+import BookDemo from './pages/BookDemo';
+import { clearLegacyPortfolioCaches, fetchPortfolioContent } from './lib/portfolioApi';
+import { useStore } from './store/useStore';
 
 // Animated Route Wrapper
 function AnimatedRoutes() {
@@ -22,6 +26,7 @@ function AnimatedRoutes() {
         <Route path="/products" element={<Products />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/book-demo" element={<BookDemo />} />
       </Routes>
     </AnimatePresence>
   );
@@ -29,6 +34,7 @@ function AnimatedRoutes() {
 
 export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const replaceSiteContent = useStore((state) => state.replaceSiteContent);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -44,8 +50,45 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
+  useEffect(() => {
+    clearLegacyPortfolioCaches();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const syncRemoteContent = async () => {
+      if (isAdminOpen) return;
+      try {
+        const remote = await fetchPortfolioContent();
+        if (!isMounted) return;
+        const state = useStore.getState();
+        const shouldApplyRemote = remote.version > state.contentVersion || state.lastSyncSource === 'local';
+        if (shouldApplyRemote) {
+          replaceSiteContent(remote.content, {
+            version: remote.version,
+            updatedAt: remote.updated_at ?? null,
+            source: 'remote',
+          });
+        }
+      } catch {
+        // Keep local state when API is unreachable.
+      }
+    };
+
+    void syncRemoteContent();
+    const interval = window.setInterval(() => {
+      void syncRemoteContent();
+    }, 30000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+    };
+  }, [isAdminOpen, replaceSiteContent]);
+
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-slate-50 text-slate-900 font-body selection:bg-primary/20 relative flex flex-col overflow-x-hidden">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_10%_20%,rgba(13,78,216,0.18),transparent_30%),radial-gradient(circle_at_90%_0%,rgba(249,115,22,0.16),transparent_28%),linear-gradient(180deg,#f8fafc_0%,#eff6ff_35%,#f8fafc_100%)]" />
         <div className="pointer-events-none fixed inset-0 -z-10 grid-pattern opacity-30" />

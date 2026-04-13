@@ -1,12 +1,37 @@
 version: '3.8'
 
 services:
+  eyespot-backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      - DEBUG=false
+      - DATABASE_URL=sqlite+aiosqlite:////app/security_system.db
+      - SECRET_KEY=${SECRET_KEY:-portfolio-secret-key-change-this}
+      - CORS_ALLOW_ALL=true
+      - PORTFOLIO_ADMIN_EMAILS=${PORTFOLIO_ADMIN_EMAILS:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-no-reply@eyespot.ai}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+    volumes:
+      - ../backend/security_system.db:/app/security_system.db
+      - ../backend/alert_images:/app/alert_images
+
   eyespot-frontend:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_PORTFOLIO_API_BASE: ${VITE_PORTFOLIO_API_BASE:-http://localhost:8000/api}
     ports:
       - "3000:80"
     restart: always
-    environment:
-      - NODE_ENV=production
+    depends_on:
+      - eyespot-backend

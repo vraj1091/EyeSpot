@@ -39,8 +39,11 @@ export default function Footer() {
             <div>
               <p className="muted-label">Quick Links</p>
               <div className="mt-3 flex flex-col gap-2 text-sm">
+                <Link to="/" className="text-slate-600 hover:text-primary transition-colors">Home</Link>
                 <Link to="/about" className="text-slate-600 hover:text-primary transition-colors">About</Link>
-                <Link to="/products" className="text-slate-600 hover:text-primary transition-colors">Solutions</Link>
+                <Link to="/products" className="text-slate-600 hover:text-primary transition-colors">Industries</Link>
+                <Link to="/pricing" className="text-slate-600 hover:text-primary transition-colors">Pricing</Link>
+                <Link to="/book-demo?source=footer" className="text-slate-600 hover:text-primary transition-colors">Book Demo</Link>
                 <Link to="/contact" className="text-slate-600 hover:text-primary transition-colors">Contact</Link>
               </div>
             </div>

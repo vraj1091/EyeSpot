@@ -1,7 +1,9 @@
+import { FormEvent, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { CheckCircle2, Mail, Phone, MapPin, Send } from 'lucide-react';
 import SEO from '../components/SEO';
+import { submitLeadRequest } from '../lib/portfolioApi';
 
 const pageVariants = {
   initial: { opacity: 0, y: 16 },
@@ -11,6 +13,43 @@ const pageVariants = {
 
 export default function Contact() {
   const { contactEmail, contactPhone, contactAddress, companyName, media } = useStore();
+  const [form, setForm] = useState({
+    full_name: '',
+    work_email: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitMessage(null);
+    setIsSubmitting(true);
+    try {
+      const response = await submitLeadRequest({
+        request_type: 'contact',
+        full_name: form.full_name,
+        work_email: form.work_email,
+        message: form.message,
+        source_page: 'contact-page',
+      });
+      setSubmitMessage({
+        type: 'success',
+        text: response.email_sent
+          ? 'Message sent successfully. Our team will reach out soon.'
+          : `Message saved successfully. ${response.detail}`,
+      });
+      setForm({ full_name: '', work_email: '', message: '' });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Unable to submit right now.';
+      setSubmitMessage({
+        type: 'error',
+        text: `${reason} You can also email us at ${contactEmail}.`,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} className="space-y-16 pb-20 pt-4">
@@ -84,10 +123,13 @@ export default function Contact() {
           <div className="section-card p-7 md:p-8 h-full bg-gradient-to-br from-white to-slate-50">
             <h3 className="font-heading text-3xl md:text-4xl font-semibold text-slate-900">Neural Transmission</h3>
 
-            <form className="space-y-4 mt-6" onSubmit={e => e.preventDefault()}>
+            <form className="space-y-4 mt-6" onSubmit={handleSubmit}>
               <div>
                 <input
                   type="text"
+                  required
+                  value={form.full_name}
+                  onChange={(event) => setForm((prev) => ({ ...prev, full_name: event.target.value }))}
                   placeholder="Identification / Unit Name"
                   className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors"
                 />
@@ -95,21 +137,46 @@ export default function Contact() {
               <div>
                 <input
                   type="email"
+                  required
+                  value={form.work_email}
+                  onChange={(event) => setForm((prev) => ({ ...prev, work_email: event.target.value }))}
                   placeholder="Secure Return Address"
                   className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors"
                 />
               </div>
               <div>
                 <textarea
+                  required
+                  value={form.message}
+                  onChange={(event) => setForm((prev) => ({ ...prev, message: event.target.value }))}
                   placeholder="Operational Objective Parameters"
                   rows={6}
                   className="w-full bg-slate-50 py-3 px-4 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-primary/40 outline-none transition-colors resize-none"
                 />
               </div>
-              <button className="w-full py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors">
-                <Send className="w-4 h-4" /> Beam Data
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 rounded-lg font-semibold bg-primary text-white hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+              >
+                <Send className="w-4 h-4" /> {isSubmitting ? 'Sending...' : 'Beam Data'}
               </button>
             </form>
+
+            {submitMessage && (
+              <div
+                className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+                  submitMessage.type === 'success'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-rose-200 bg-rose-50 text-rose-800'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {submitMessage.type === 'success' && <CheckCircle2 className="w-4 h-4 mt-0.5" />}
+                  <p>{submitMessage.text}</p>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </section>

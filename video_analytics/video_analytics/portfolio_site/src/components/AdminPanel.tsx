@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -14,10 +14,12 @@ import {
   Camera,
   RefreshCcw,
   Download,
+  Globe,
 } from 'lucide-react';
-import { useStore, TeamMember, Product, Plan, SiteMedia } from '../store/useStore';
+import { useStore, TeamMember, Product, Plan, SiteMedia, Industry, Detection } from '../store/useStore';
+import { savePortfolioContent } from '../lib/portfolioApi';
 
-type AdminTab = 'overview' | 'globals' | 'team' | 'products' | 'plans' | 'media';
+type AdminTab = 'overview' | 'globals' | 'team' | 'products' | 'industries' | 'plans' | 'media';
 
 interface CompanyDraft {
   companyName: string;
@@ -35,6 +37,7 @@ interface Snapshot {
   team: TeamMember[];
   products: Product[];
   plans: Plan[];
+  industries: Industry[];
   media: SiteMedia;
 }
 
@@ -42,6 +45,7 @@ type StoreStateFields = CompanyDraft & {
   team: TeamMember[];
   products: Product[];
   plans: Plan[];
+  industries: Industry[];
   media: SiteMedia;
 };
 
@@ -63,6 +67,7 @@ const makeStoreSnapshot = (store: StoreStateFields): Snapshot => ({
   team: cloneValue(store.team),
   products: cloneValue(store.products),
   plans: cloneValue(store.plans),
+  industries: cloneValue(store.industries),
   media: cloneValue(store.media),
 });
 
@@ -95,9 +100,11 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
   const [teamDraft, setTeamDraft] = useState<TeamMember[]>([]);
   const [productDraft, setProductDraft] = useState<Product[]>([]);
   const [planDraft, setPlanDraft] = useState<Plan[]>([]);
+  const [industriesDraft, setIndustriesDraft] = useState<Industry[]>([]);
   const [mediaDraft, setMediaDraft] = useState<SiteMedia>(store.media);
   const [snapshotOnOpen, setSnapshotOnOpen] = useState('');
-  const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -106,9 +113,11 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     setTeamDraft(snapshot.team);
     setProductDraft(snapshot.products);
     setPlanDraft(snapshot.plans);
+    setIndustriesDraft(snapshot.industries);
     setMediaDraft(snapshot.media);
     setSnapshotOnOpen(JSON.stringify(snapshot));
     setSaveState('idle');
+    setSaveMessage('');
     setQuery('');
     setActiveTab('overview');
   }, [
@@ -132,10 +141,56 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     team: teamDraft,
     products: productDraft,
     plans: planDraft,
+    industries: industriesDraft,
     media: mediaDraft,
-  }), [companyDraft, teamDraft, productDraft, planDraft, mediaDraft]);
+  }), [companyDraft, teamDraft, productDraft, planDraft, industriesDraft, mediaDraft]);
 
   const isDirty = currentSnapshot !== snapshotOnOpen;
+
+  const handleSave = useCallback(async () => {
+    const payload = {
+      companyName: companyDraft.companyName,
+      tagline: companyDraft.tagline,
+      vision: companyDraft.vision,
+      mission: companyDraft.mission,
+      aboutText: companyDraft.aboutText,
+      contactEmail: companyDraft.contactEmail,
+      contactPhone: companyDraft.contactPhone,
+      contactAddress: companyDraft.contactAddress,
+      team: teamDraft,
+      products: productDraft,
+      plans: planDraft,
+      industries: industriesDraft,
+      media: mediaDraft,
+    };
+
+    setSaveState('saving');
+    setSaveMessage('Saving locally and syncing globally...');
+    store.replaceSiteContent(payload, { source: 'local' });
+    setSnapshotOnOpen(JSON.stringify({
+      company: companyDraft,
+      team: teamDraft,
+      products: productDraft,
+      plans: planDraft,
+      industries: industriesDraft,
+      media: mediaDraft,
+    }));
+
+    try {
+      const remote = await savePortfolioContent(payload);
+      store.replaceSiteContent(remote.content, {
+        version: remote.version,
+        updatedAt: remote.updated_at ?? null,
+        source: 'remote',
+      });
+      setSaveState('saved');
+      setSaveMessage('Saved and synced globally.');
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Global sync failed.';
+      setSaveState('error');
+      setSaveMessage(`Saved locally, but global sync failed. ${reason}`);
+    }
+  }, [companyDraft, mediaDraft, planDraft, productDraft, industriesDraft, store, teamDraft]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -147,29 +202,20 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        store.updateCompanyDetails(companyDraft);
-        store.updateTeam(teamDraft);
-        store.updateProducts(productDraft);
-        store.updatePlans(planDraft);
-        store.updateMedia(mediaDraft);
-        setSnapshotOnOpen(JSON.stringify({
-          company: companyDraft,
-          team: teamDraft,
-          products: productDraft,
-          plans: planDraft,
-          media: mediaDraft,
-        }));
-        setSaveState('saved');
+        void handleSave();
       }
     };
 
     window.addEventListener('keydown', handleShortcuts);
     return () => window.removeEventListener('keydown', handleShortcuts);
-  }, [companyDraft, mediaDraft, onClose, planDraft, productDraft, store, teamDraft, isOpen]);
+  }, [handleSave, isOpen, onClose]);
 
   useEffect(() => {
     if (saveState !== 'saved') return;
-    const timeout = window.setTimeout(() => setSaveState('idle'), 1600);
+    const timeout = window.setTimeout(() => {
+      setSaveState('idle');
+      setSaveMessage('');
+    }, 1600);
     return () => window.clearTimeout(timeout);
   }, [saveState]);
 
@@ -213,25 +259,10 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     { id: 'globals', label: 'Brand + Contact', icon: LayoutDashboard },
     { id: 'team', label: 'Team', icon: Users },
     { id: 'products', label: 'Products', icon: Box },
+    { id: 'industries', label: 'Industries', icon: Globe },
     { id: 'plans', label: 'Pricing', icon: Wallet },
     { id: 'media', label: 'Media', icon: Camera },
   ];
-
-  const handleSave = () => {
-    store.updateCompanyDetails(companyDraft);
-    store.updateTeam(teamDraft);
-    store.updateProducts(productDraft);
-    store.updatePlans(planDraft);
-    store.updateMedia(mediaDraft);
-    setSnapshotOnOpen(JSON.stringify({
-      company: companyDraft,
-      team: teamDraft,
-      products: productDraft,
-      plans: planDraft,
-      media: mediaDraft,
-    }));
-    setSaveState('saved');
-  };
 
   const handleReset = () => {
     const snapshot = makeStoreSnapshot(store);
@@ -239,10 +270,12 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     setTeamDraft(snapshot.team);
     setProductDraft(snapshot.products);
     setPlanDraft(snapshot.plans);
+    setIndustriesDraft(snapshot.industries);
     setMediaDraft(snapshot.media);
     setSnapshotOnOpen(JSON.stringify(snapshot));
     setQuery('');
     setSaveState('idle');
+    setSaveMessage('');
   };
 
   const exportBackup = () => {
@@ -252,6 +285,7 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       team: teamDraft,
       products: productDraft,
       plans: planDraft,
+      industries: industriesDraft,
       media: mediaDraft,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -352,8 +386,14 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`text-xs px-2.5 py-1 rounded-full border ${isDirty ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-emerald-300 bg-emerald-50 text-emerald-700'}`}>
-                  {isDirty ? 'Unsaved changes' : 'All changes saved'}
+                <span className={`text-xs px-2.5 py-1 rounded-full border ${
+                  saveState === 'error'
+                    ? 'border-rose-300 bg-rose-50 text-rose-700'
+                    : isDirty
+                      ? 'border-amber-300 bg-amber-50 text-amber-700'
+                      : 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                }`}>
+                  {saveState === 'error' ? 'Sync failed' : isDirty ? 'Unsaved changes' : 'All changes saved'}
                 </span>
                 <button
                   type="button"
@@ -373,14 +413,27 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                 </button>
                 <button
                   type="button"
-                  onClick={handleSave}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                  onClick={() => void handleSave()}
+                  disabled={saveState === 'saving'}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   <Save className="w-4 h-4" />
-                  {saveState === 'saved' ? 'Saved' : 'Save'}
+                  {saveState === 'saving' ? 'Saving...' : saveState === 'saved' ? 'Saved' : saveState === 'error' ? 'Retry Save' : 'Save'}
                 </button>
               </div>
             </header>
+
+            {saveMessage && (
+              <div className={`mx-4 md:mx-6 mt-3 rounded-xl border px-4 py-2 text-xs ${
+                saveState === 'error'
+                  ? 'border-rose-200 bg-rose-50 text-rose-700'
+                  : saveState === 'saved'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border-slate-200 bg-white text-slate-600'
+              }`}>
+                {saveMessage}
+              </div>
+            )}
 
             <div className="min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
               {activeTab === 'overview' && (
@@ -841,6 +894,244 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                       </article>
                     );
                   })}
+                </div>
+              )}
+
+              {activeTab === 'industries' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-heading text-2xl text-slate-900">Industries & Detections</h3>
+                      <p className="text-sm text-slate-500">Manage industry verticals and their detection capabilities.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setIndustriesDraft((prev) => [
+                          {
+                            id: createId(),
+                            title: '',
+                            subtitle: '',
+                            icon: 'Building2',
+                            status: 'coming-soon',
+                            detections: [],
+                          },
+                          ...prev,
+                        ])
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Industry
+                    </button>
+                  </div>
+
+                  {industriesDraft.length === 0 && (
+                    <div className={card}>
+                      <p className="text-sm text-slate-500">No industries configured yet.</p>
+                    </div>
+                  )}
+
+                  {industriesDraft.map((industry, indIdx) => (
+                    <article key={industry.id} className={card}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="font-heading text-xl text-slate-900">
+                          {industry.title || 'Untitled Industry'}
+                          <span className={`ml-2 text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                            industry.status === 'live' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                            industry.status === 'pilot' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                            'bg-blue-100 text-blue-700 border-blue-200'
+                          }`}>
+                            {industry.status}
+                          </span>
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setIndustriesDraft((prev) => prev.filter((item) => item.id !== industry.id))}
+                          className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-4 grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className={fieldLabel}>Title</label>
+                          <input
+                            value={industry.title}
+                            onChange={(event) =>
+                              setIndustriesDraft((prev) =>
+                                prev.map((item, i) => i === indIdx ? { ...item, title: event.target.value } : item)
+                              )
+                            }
+                            className={textInput}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className={fieldLabel}>Icon Name</label>
+                          <input
+                            value={industry.icon}
+                            onChange={(event) =>
+                              setIndustriesDraft((prev) =>
+                                prev.map((item, i) => i === indIdx ? { ...item, icon: event.target.value } : item)
+                              )
+                            }
+                            className={textInput}
+                            placeholder="Store, HardHat, Warehouse, Factory..."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className={fieldLabel}>Status</label>
+                          <select
+                            value={industry.status}
+                            onChange={(event) =>
+                              setIndustriesDraft((prev) =>
+                                prev.map((item, i) => i === indIdx ? { ...item, status: event.target.value as Industry['status'] } : item)
+                              )
+                            }
+                            className={textInput}
+                          >
+                            <option value="live">Live</option>
+                            <option value="pilot">Pilot</option>
+                            <option value="coming-soon">Coming Soon</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <label className={fieldLabel}>Subtitle</label>
+                          <textarea
+                            value={industry.subtitle}
+                            onChange={(event) =>
+                              setIndustriesDraft((prev) =>
+                                prev.map((item, i) => i === indIdx ? { ...item, subtitle: event.target.value } : item)
+                              )
+                            }
+                            className={textArea}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Detections */}
+                      <div className="mt-5 border-t border-slate-200 pt-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className={fieldLabel}>Detections ({industry.detections.length})</p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setIndustriesDraft((prev) =>
+                                prev.map((item, i) =>
+                                  i === indIdx
+                                    ? {
+                                        ...item,
+                                        detections: [
+                                          ...item.detections,
+                                          { id: createId(), name: '', description: '', status: industry.status },
+                                        ],
+                                      }
+                                    : item
+                                )
+                              )
+                            }
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          >
+                            <Plus className="w-3 h-3" /> Add Detection
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {industry.detections.map((det, detIdx) => (
+                            <div key={det.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-semibold text-slate-700">{det.name || 'Unnamed Detection'}</p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIndustriesDraft((prev) =>
+                                      prev.map((item, i) =>
+                                        i === indIdx
+                                          ? { ...item, detections: item.detections.filter((d) => d.id !== det.id) }
+                                          : item
+                                      )
+                                    )
+                                  }
+                                  className="text-rose-500 hover:text-rose-700 transition"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div className="grid md:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-semibold uppercase text-slate-400">Name</label>
+                                  <input
+                                    value={det.name}
+                                    onChange={(event) =>
+                                      setIndustriesDraft((prev) =>
+                                        prev.map((item, i) =>
+                                          i === indIdx
+                                            ? {
+                                                ...item,
+                                                detections: item.detections.map((d, di) =>
+                                                  di === detIdx ? { ...d, name: event.target.value } : d
+                                                ),
+                                              }
+                                            : item
+                                        )
+                                      )
+                                    }
+                                    className={textInput}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-semibold uppercase text-slate-400">Status</label>
+                                  <select
+                                    value={det.status}
+                                    onChange={(event) =>
+                                      setIndustriesDraft((prev) =>
+                                        prev.map((item, i) =>
+                                          i === indIdx
+                                            ? {
+                                                ...item,
+                                                detections: item.detections.map((d, di) =>
+                                                  di === detIdx ? { ...d, status: event.target.value as Detection['status'] } : d
+                                                ),
+                                              }
+                                            : item
+                                        )
+                                      )
+                                    }
+                                    className={textInput}
+                                  >
+                                    <option value="live">Live</option>
+                                    <option value="pilot">Pilot</option>
+                                    <option value="coming-soon">Coming Soon</option>
+                                  </select>
+                                </div>
+                                <div className="space-y-1 md:col-span-3">
+                                  <label className="text-[10px] font-semibold uppercase text-slate-400">Description</label>
+                                  <input
+                                    value={det.description}
+                                    onChange={(event) =>
+                                      setIndustriesDraft((prev) =>
+                                        prev.map((item, i) =>
+                                          i === indIdx
+                                            ? {
+                                                ...item,
+                                                detections: item.detections.map((d, di) =>
+                                                  di === detIdx ? { ...d, description: event.target.value } : d
+                                                ),
+                                              }
+                                            : item
+                                        )
+                                      )
+                                    }
+                                    className={textInput}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               )}
 
