@@ -632,7 +632,7 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                             role: '',
                             slogan: '',
                             details: '',
-                            image: mediaDraft.teamDefaultImage,
+                            image: '',
                           },
                           ...prev,
                         ])

@@ -9,6 +9,14 @@ const pageVariants = {
   out: { opacity: 0, y: -12, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0]?.toUpperCase() ?? '')
+    .join('') || 'TM';
+
 export default function About() {
   const { companyName, team, vision, mission, aboutText, media } = useStore();
 
@@ -63,30 +71,47 @@ export default function About() {
         </div>
 
         <div className="mt-8 grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {team.map((t, i) => (
-            <motion.article
-              key={t.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="rounded-2xl border border-slate-200 bg-white overflow-hidden p-0 shadow-sm"
-            >
-              <div className="relative h-56">
-                <img src={t.image || media.teamDefaultImage} alt={`${t.name} profile`} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
-                <div className="absolute bottom-4 left-4 w-11 h-11 rounded-full bg-white/20 text-white border border-white/40 flex items-center justify-center backdrop-blur-sm">
-                  <Users className="w-5 h-5" />
+          {team.map((t, i) => {
+            const profileImage = t.image?.trim() || media.teamDefaultImage?.trim();
+            return (
+              <motion.article
+                key={t.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border border-slate-200 bg-white overflow-hidden p-0 shadow-sm"
+              >
+                <div className="relative h-56">
+                  {profileImage ? (
+                    <>
+                      <img
+                        src={profileImage}
+                        alt={`${t.name} profile`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" />
+                    </>
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 flex items-center justify-center">
+                      <div className="h-20 w-20 rounded-2xl bg-white text-slate-700 border border-slate-300 shadow-sm flex items-center justify-center font-heading text-2xl font-semibold">
+                        {getInitials(t.name)}
+                      </div>
+                    </div>
+                  )}
+                  <div className={`absolute bottom-4 left-4 w-11 h-11 rounded-full border flex items-center justify-center ${profileImage ? 'bg-white/20 text-white border-white/40 backdrop-blur-sm' : 'bg-white text-slate-700 border-slate-300 shadow-sm'}`}>
+                    <Users className="w-5 h-5" />
+                  </div>
                 </div>
-              </div>
-              <div className="p-6">
-                <h3 className="font-heading text-2xl text-slate-900 font-semibold">{t.name}</h3>
-                <p className="mt-1 text-xs uppercase tracking-widest text-primary font-semibold">{t.role}</p>
-                <p className="mt-4 italic text-slate-500">"{t.slogan}"</p>
-                <p className="mt-4 text-sm text-slate-600 leading-relaxed">{t.details}</p>
-              </div>
-            </motion.article>
-          ))}
+                <div className="p-6">
+                  <h3 className="font-heading text-2xl text-slate-900 font-semibold">{t.name}</h3>
+                  <p className="mt-1 text-xs uppercase tracking-widest text-primary font-semibold">{t.role}</p>
+                  <p className="mt-4 italic text-slate-500">"{t.slogan}"</p>
+                  <p className="mt-4 text-sm text-slate-600 leading-relaxed">{t.details}</p>
+                </div>
+              </motion.article>
+            );
+          })}
         </div>
       </section>
     </motion.div>

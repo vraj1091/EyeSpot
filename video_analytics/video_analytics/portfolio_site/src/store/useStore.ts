@@ -98,7 +98,7 @@ const mediaDefaults: SiteMedia = {
   productsHeroImage: 'https://images.pexels.com/photos/1181316/pexels-photo-1181316.jpeg?auto=compress&cs=tinysrgb&w=1600',
   pricingImage: 'https://images.pexels.com/photos/8353837/pexels-photo-8353837.jpeg?auto=compress&cs=tinysrgb&w=1600',
   contactImage: 'https://images.pexels.com/photos/7709139/pexels-photo-7709139.jpeg?auto=compress&cs=tinysrgb&w=1600',
-  teamDefaultImage: 'https://images.pexels.com/photos/36819476/pexels-photo-36819476.jpeg?auto=compress&cs=tinysrgb&w=900',
+  teamDefaultImage: '',
 };
 
 const productImageDefaults = [
@@ -111,7 +111,7 @@ const productImageDefaults = [
   'https://images.pexels.com/photos/5203849/pexels-photo-5203849.jpeg?auto=compress&cs=tinysrgb&w=1200',
 ];
 
-const teamImageDefaults = [
+const legacyTeamImageDefaults = [
   'https://images.pexels.com/photos/3912984/pexels-photo-3912984.jpeg?auto=compress&cs=tinysrgb&w=900',
   'https://images.pexels.com/photos/35466542/pexels-photo-35466542.jpeg?auto=compress&cs=tinysrgb&w=900',
   'https://images.pexels.com/photos/36819476/pexels-photo-36819476.jpeg?auto=compress&cs=tinysrgb&w=900',
@@ -134,6 +134,7 @@ const legacyMediaImageMap: Record<string, string> = {
   'https://source.unsplash.com/1600x900/?analytics+dashboard,business+data': mediaDefaults.pricingImage,
   'https://source.unsplash.com/1600x900/?control+room,customer+support': mediaDefaults.contactImage,
   'https://source.unsplash.com/900x1200/?professional+portrait,office': mediaDefaults.teamDefaultImage,
+  'https://images.pexels.com/photos/36819476/pexels-photo-36819476.jpeg?auto=compress&cs=tinysrgb&w=900': mediaDefaults.teamDefaultImage,
 };
 
 const legacyProductImageMap: Record<string, string> = {
@@ -154,30 +155,31 @@ const legacyProductImageMap: Record<string, string> = {
 };
 
 const legacyTeamImageMap: Record<string, string> = {
-  '/project-media/team-default-detection.jpg': teamImageDefaults[0],
-  '/project-media/about-detection.jpg': teamImageDefaults[1],
-  '/project-media/architecture-detection.jpg': teamImageDefaults[2],
-  'https://source.unsplash.com/900x1200/?ceo,professional+portrait': teamImageDefaults[0],
-  'https://source.unsplash.com/900x1200/?cto,engineer+portrait': teamImageDefaults[1],
-  'https://source.unsplash.com/900x1200/?ai+engineer,developer+portrait': teamImageDefaults[2],
+  '/project-media/team-default-detection.jpg': '',
+  '/project-media/about-detection.jpg': '',
+  '/project-media/architecture-detection.jpg': '',
+  'https://source.unsplash.com/900x1200/?ceo,professional+portrait': '',
+  'https://source.unsplash.com/900x1200/?cto,engineer+portrait': '',
+  'https://source.unsplash.com/900x1200/?ai+engineer,developer+portrait': '',
+  [legacyTeamImageDefaults[0]]: '',
+  [legacyTeamImageDefaults[1]]: '',
+  [legacyTeamImageDefaults[2]]: '',
 };
 
-const isLegacyProjectImage = (value?: string): value is string =>
-  typeof value === 'string' && value.startsWith('/project-media/');
+const isLegacyProjectImage = (value: string): boolean => value.startsWith('/project-media/');
 
-const isLegacyUnsplashImage = (value?: string): value is string =>
-  typeof value === 'string' && value.includes('source.unsplash.com/');
+const isLegacyUnsplashImage = (value: string): boolean => value.includes('source.unsplash.com/');
 
 const normalizeRequiredImage = (
   value: string | undefined,
   fallback: string,
   legacyMap: Record<string, string>
 ): string => {
-  if (!value) return fallback;
-  const mapped = legacyMap[value];
-  if (mapped) return mapped;
-  if (isLegacyProjectImage(value) || isLegacyUnsplashImage(value)) return fallback;
-  return value;
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  if (!normalized) return fallback;
+  if (Object.prototype.hasOwnProperty.call(legacyMap, normalized)) return legacyMap[normalized];
+  if (isLegacyProjectImage(normalized) || isLegacyUnsplashImage(normalized)) return fallback;
+  return normalized;
 };
 
 const normalizeOptionalImage = (
@@ -185,11 +187,17 @@ const normalizeOptionalImage = (
   fallback: string,
   legacyMap: Record<string, string>
 ): string | undefined => {
-  if (!value) return value;
-  const mapped = legacyMap[value];
-  if (mapped) return mapped;
-  if (isLegacyProjectImage(value) || isLegacyUnsplashImage(value)) return fallback;
-  return value;
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  const normalizedFallback = fallback.trim();
+  if (!normalized) return undefined;
+  if (Object.prototype.hasOwnProperty.call(legacyMap, normalized)) {
+    const mapped = legacyMap[normalized].trim();
+    return mapped || undefined;
+  }
+  if (isLegacyProjectImage(normalized) || isLegacyUnsplashImage(normalized)) {
+    return normalizedFallback || undefined;
+  }
+  return normalized;
 };
 
 const normalizeSiteMedia = (media: Partial<SiteMedia> | SiteMedia): SiteMedia => ({
@@ -204,13 +212,9 @@ const normalizeSiteMedia = (media: Partial<SiteMedia> | SiteMedia): SiteMedia =>
 });
 
 const normalizeTeamMembers = (team: TeamMember[]) =>
-  team.map((member, index) => ({
+  team.map((member) => ({
     ...member,
-    image: normalizeOptionalImage(
-      member.image,
-      teamImageDefaults[index % teamImageDefaults.length],
-      legacyTeamImageMap
-    ),
+    image: normalizeOptionalImage(member.image, '', legacyTeamImageMap),
   }));
 
 const normalizeProducts = (products: Product[]) =>
@@ -354,7 +358,7 @@ const defaultContent: SiteContentPayload = {
       role: 'CEO & Founder',
       slogan: '"Execution over everything."',
       details: 'Pioneered EyeSpot core vision and enterprise AI rollout strategy across retail and industrial deployments.',
-      image: teamImageDefaults[0],
+      image: '',
     },
     {
       id: '2',
@@ -362,7 +366,7 @@ const defaultContent: SiteContentPayload = {
       role: 'Chief Technology Officer',
       slogan: '"Latency is the enemy of truth."',
       details: 'Architected zero-latency edge inference pipelines and deployment orchestration for large camera fleets.',
-      image: teamImageDefaults[1],
+      image: '',
     },
     {
       id: '3',
@@ -370,7 +374,7 @@ const defaultContent: SiteContentPayload = {
       role: 'Core AI Engineer',
       slogan: '"Data never lies."',
       details: 'Leads model evaluation, behavioral analytics tuning, and production-quality detection performance validation.',
-      image: teamImageDefaults[2],
+      image: '',
     },
   ],
   products: [
@@ -686,7 +690,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'eyespot-storage-v10',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState) => {
         const state = (persistedState ?? {}) as Partial<AppState>;
