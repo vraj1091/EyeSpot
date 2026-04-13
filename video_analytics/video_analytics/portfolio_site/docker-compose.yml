@@ -8,6 +8,9 @@ services:
       args:
         VITE_PORTFOLIO_API_BASE: ${VITE_PORTFOLIO_API_BASE:-/api}
         VITE_ENABLE_PORTFOLIO_REMOTE_SYNC: ${VITE_ENABLE_PORTFOLIO_REMOTE_SYNC:-true}
+        PORTFOLIO_API_UPSTREAM: ${PORTFOLIO_API_UPSTREAM:-http://host.docker.internal:8000}
     ports:
       - "${FRONTEND_PORT:-3000}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped

@@ -68,6 +68,11 @@ const parseJsonResponse = async <T>(response: Response, context: string): Promis
   const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
   const text = await response.text();
   if (!response.ok) {
+    if (contentType.includes('text/html')) {
+      throw new RemoteSyncUnavailableError(
+        `${context} endpoint returned HTML (${response.status}). API routing is pointing to web server instead of backend.`
+      );
+    }
     throw new Error(text || `${context} failed with status ${response.status}`);
   }
   if (!contentType.includes('application/json')) {
