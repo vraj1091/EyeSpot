@@ -29,7 +29,7 @@ export interface LeadRequestResponse {
   detail: string;
 }
 
-const DEFAULT_API_ROOT = 'http://localhost:8000/api';
+const DEFAULT_API_ROOT = '/api';
 
 const stripTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 

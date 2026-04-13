@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-ARG VITE_PORTFOLIO_API_BASE=http://localhost:8000/api
+ARG VITE_PORTFOLIO_API_BASE=/api
 ENV VITE_PORTFOLIO_API_BASE=$VITE_PORTFOLIO_API_BASE
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
