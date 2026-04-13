@@ -30,7 +30,7 @@ export interface LeadRequestResponse {
 }
 
 const DEFAULT_API_ROOT = '/api';
-const DEFAULT_REMOTE_SYNC_ENABLED = false;
+const DEFAULT_REMOTE_SYNC_ENABLED = true;
 
 const stripTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 
@@ -46,6 +46,8 @@ const readApiRoot = () => {
   const envRoot = import.meta.env.VITE_PORTFOLIO_API_BASE || import.meta.env.VITE_API_URL;
   return stripTrailingSlash(envRoot || DEFAULT_API_ROOT);
 };
+
+export const getPortfolioApiRoot = () => readApiRoot();
 
 const apiUrl = (path: string) => `${readApiRoot()}${path}`;
 

@@ -17,7 +17,12 @@ import {
   Globe,
 } from 'lucide-react';
 import { useStore, TeamMember, Product, Plan, SiteMedia, Industry, Detection } from '../store/useStore';
-import { isPortfolioRemoteSyncEnabled, RemoteSyncUnavailableError, savePortfolioContent } from '../lib/portfolioApi';
+import {
+  getPortfolioApiRoot,
+  isPortfolioRemoteSyncEnabled,
+  RemoteSyncUnavailableError,
+  savePortfolioContent,
+} from '../lib/portfolioApi';
 
 type AdminTab = 'overview' | 'globals' | 'team' | 'products' | 'industries' | 'plans' | 'media';
 
@@ -103,8 +108,10 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
   const [industriesDraft, setIndustriesDraft] = useState<Industry[]>([]);
   const [mediaDraft, setMediaDraft] = useState<SiteMedia>(store.media);
   const [snapshotOnOpen, setSnapshotOnOpen] = useState('');
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'saved-local' | 'error'>('idle');
   const [saveMessage, setSaveMessage] = useState('');
+  const remoteSyncEnabled = isPortfolioRemoteSyncEnabled();
+  const remoteApiRoot = getPortfolioApiRoot();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -165,7 +172,7 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     };
 
     setSaveState('saving');
-    setSaveMessage('Saving locally and syncing globally...');
+    setSaveMessage(remoteSyncEnabled ? 'Saving locally and syncing globally...' : 'Saving locally...');
     store.replaceSiteContent(payload, { source: 'local' });
     setSnapshotOnOpen(JSON.stringify({
       company: companyDraft,
@@ -176,9 +183,11 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       media: mediaDraft,
     }));
 
-    if (!isPortfolioRemoteSyncEnabled()) {
-      setSaveState('saved');
-      setSaveMessage('Saved locally. Global sync is disabled for this deployment.');
+    if (!remoteSyncEnabled) {
+      setSaveState('saved-local');
+      setSaveMessage(
+        `Saved locally only. Global sync is disabled (VITE_ENABLE_PORTFOLIO_REMOTE_SYNC=false). API root: ${remoteApiRoot}`
+      );
       return;
     }
 
@@ -193,15 +202,18 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       setSaveMessage('Saved and synced globally.');
     } catch (error) {
       if (error instanceof RemoteSyncUnavailableError) {
-        setSaveState('saved');
-        setSaveMessage('Saved locally. Global sync endpoint is unavailable right now.');
+        const proxyHint = remoteApiRoot.startsWith('/api')
+          ? ' Configure VITE_PORTFOLIO_API_BASE with your backend URL or add an /api reverse proxy.'
+          : '';
+        setSaveState('saved-local');
+        setSaveMessage(`Saved locally only. Global sync endpoint unavailable at ${remoteApiRoot}.${proxyHint}`);
         return;
       }
       const reason = error instanceof Error ? error.message : 'Global sync failed.';
       setSaveState('error');
       setSaveMessage(`Saved locally, but global sync failed. ${reason}`);
     }
-  }, [companyDraft, mediaDraft, planDraft, productDraft, industriesDraft, store, teamDraft]);
+  }, [companyDraft, mediaDraft, planDraft, productDraft, industriesDraft, remoteApiRoot, remoteSyncEnabled, store, teamDraft]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -400,11 +412,19 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                 <span className={`text-xs px-2.5 py-1 rounded-full border ${
                   saveState === 'error'
                     ? 'border-rose-300 bg-rose-50 text-rose-700'
-                    : isDirty
+                    : saveState === 'saved-local'
                       ? 'border-amber-300 bg-amber-50 text-amber-700'
-                      : 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                      : isDirty
+                        ? 'border-amber-300 bg-amber-50 text-amber-700'
+                        : 'border-emerald-300 bg-emerald-50 text-emerald-700'
                 }`}>
-                  {saveState === 'error' ? 'Sync failed' : isDirty ? 'Unsaved changes' : 'All changes saved'}
+                  {saveState === 'error'
+                    ? 'Sync failed'
+                    : saveState === 'saved-local'
+                      ? 'Local only'
+                      : isDirty
+                        ? 'Unsaved changes'
+                        : 'All changes saved'}
                 </span>
                 <button
                   type="button"
@@ -429,7 +449,15 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   <Save className="w-4 h-4" />
-                  {saveState === 'saving' ? 'Saving...' : saveState === 'saved' ? 'Saved' : saveState === 'error' ? 'Retry Save' : 'Save'}
+                  {saveState === 'saving'
+                    ? 'Saving...'
+                    : saveState === 'saved'
+                      ? 'Saved'
+                      : saveState === 'saved-local'
+                        ? 'Saved (Local)'
+                        : saveState === 'error'
+                          ? 'Retry Save'
+                          : 'Save'}
                 </button>
               </div>
             </header>
@@ -440,6 +468,8 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                   ? 'border-rose-200 bg-rose-50 text-rose-700'
                   : saveState === 'saved'
                     ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : saveState === 'saved-local'
+                      ? 'border-amber-200 bg-amber-50 text-amber-700'
                     : 'border-slate-200 bg-white text-slate-600'
               }`}>
                 {saveMessage}

@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_PORTFOLIO_API_BASE: ${VITE_PORTFOLIO_API_BASE:-/api}
+        VITE_ENABLE_PORTFOLIO_REMOTE_SYNC: ${VITE_ENABLE_PORTFOLIO_REMOTE_SYNC:-true}
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     restart: unless-stopped

@@ -229,7 +229,7 @@ export default function Products() {
                           <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold text-slate-900 break-words">
                             {selectedIndustry.title}
                           </h2>
-                          <span className={`text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full border ${statusStyles[selectedIndustry.status].pill}`}>
+                          <span className={`self-start text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full border ${statusStyles[selectedIndustry.status].pill}`}>
                             {statusStyles[selectedIndustry.status].label}
                           </span>
                         </div>
