@@ -91,31 +91,137 @@ interface AppState extends SiteContentPayload {
 }
 
 const mediaDefaults: SiteMedia = {
-  heroImage: '/project-media/hero-detection.jpg',
-  architectureImage: '/project-media/architecture-detection.jpg',
-  industriesImage: '/project-media/industries-detection.jpg',
-  aboutImage: '/project-media/about-detection.jpg',
-  productsHeroImage: '/project-media/products-hero-detection.jpg',
-  pricingImage: '/project-media/pricing-detection.jpg',
-  contactImage: '/project-media/contact-detection.jpg',
-  teamDefaultImage: '/project-media/team-default-detection.jpg',
+  heroImage: 'https://images.pexels.com/photos/25391056/pexels-photo-25391056.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  architectureImage: 'https://images.pexels.com/photos/4597280/pexels-photo-4597280.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  industriesImage: 'https://images.pexels.com/photos/6838164/pexels-photo-6838164.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  aboutImage: 'https://images.pexels.com/photos/36733293/pexels-photo-36733293.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  productsHeroImage: 'https://images.pexels.com/photos/1181316/pexels-photo-1181316.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  pricingImage: 'https://images.pexels.com/photos/8353837/pexels-photo-8353837.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  contactImage: 'https://images.pexels.com/photos/7709139/pexels-photo-7709139.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  teamDefaultImage: 'https://images.pexels.com/photos/36819476/pexels-photo-36819476.jpeg?auto=compress&cs=tinysrgb&w=900',
 };
 
 const productImageDefaults = [
-  '/project-media/product-shoplifting-vector.jpg',
-  '/project-media/product-perimeter-pred.jpg',
-  '/project-media/product-reid-tracking.jpg',
-  '/project-media/product-thermal-fusion.jpg',
-  '/project-media/product-checkout.jpg',
-  '/project-media/product-lpr-velocity.jpg',
-  '/project-media/product-custom-training.jpg',
+  'https://images.pexels.com/photos/25391056/pexels-photo-25391056.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/5092815/pexels-photo-5092815.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/5408005/pexels-photo-5408005.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/5453824/pexels-photo-5453824.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/7658375/pexels-photo-7658375.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/6838164/pexels-photo-6838164.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  'https://images.pexels.com/photos/5203849/pexels-photo-5203849.jpeg?auto=compress&cs=tinysrgb&w=1200',
 ];
 
 const teamImageDefaults = [
-  '/project-media/team-default-detection.jpg',
-  '/project-media/about-detection.jpg',
-  '/project-media/architecture-detection.jpg',
+  'https://images.pexels.com/photos/3912984/pexels-photo-3912984.jpeg?auto=compress&cs=tinysrgb&w=900',
+  'https://images.pexels.com/photos/35466542/pexels-photo-35466542.jpeg?auto=compress&cs=tinysrgb&w=900',
+  'https://images.pexels.com/photos/36819476/pexels-photo-36819476.jpeg?auto=compress&cs=tinysrgb&w=900',
 ];
+
+const legacyMediaImageMap: Record<string, string> = {
+  '/project-media/hero-detection.jpg': mediaDefaults.heroImage,
+  '/project-media/architecture-detection.jpg': mediaDefaults.architectureImage,
+  '/project-media/industries-detection.jpg': mediaDefaults.industriesImage,
+  '/project-media/about-detection.jpg': mediaDefaults.aboutImage,
+  '/project-media/products-hero-detection.jpg': mediaDefaults.productsHeroImage,
+  '/project-media/pricing-detection.jpg': mediaDefaults.pricingImage,
+  '/project-media/contact-detection.jpg': mediaDefaults.contactImage,
+  '/project-media/team-default-detection.jpg': mediaDefaults.teamDefaultImage,
+  'https://source.unsplash.com/1600x900/?security+operations+center,cctv': mediaDefaults.heroImage,
+  'https://source.unsplash.com/1600x900/?edge+computing,server+rack': mediaDefaults.architectureImage,
+  'https://source.unsplash.com/1600x900/?smart+city,traffic+monitoring': mediaDefaults.industriesImage,
+  'https://source.unsplash.com/1600x900/?ai+team,technology+meeting': mediaDefaults.aboutImage,
+  'https://source.unsplash.com/1600x900/?artificial+intelligence,video+analytics': mediaDefaults.productsHeroImage,
+  'https://source.unsplash.com/1600x900/?analytics+dashboard,business+data': mediaDefaults.pricingImage,
+  'https://source.unsplash.com/1600x900/?control+room,customer+support': mediaDefaults.contactImage,
+  'https://source.unsplash.com/900x1200/?professional+portrait,office': mediaDefaults.teamDefaultImage,
+};
+
+const legacyProductImageMap: Record<string, string> = {
+  '/project-media/product-shoplifting-vector.jpg': productImageDefaults[0],
+  '/project-media/product-perimeter-pred.jpg': productImageDefaults[1],
+  '/project-media/product-reid-tracking.jpg': productImageDefaults[2],
+  '/project-media/product-thermal-fusion.jpg': productImageDefaults[3],
+  '/project-media/product-checkout.jpg': productImageDefaults[4],
+  '/project-media/product-lpr-velocity.jpg': productImageDefaults[5],
+  '/project-media/product-custom-training.jpg': productImageDefaults[6],
+  'https://source.unsplash.com/1200x900/?retail+security,camera': productImageDefaults[0],
+  'https://source.unsplash.com/1200x900/?perimeter+security,fence+camera': productImageDefaults[1],
+  'https://source.unsplash.com/1200x900/?facial+recognition,computer+vision': productImageDefaults[2],
+  'https://source.unsplash.com/1200x900/?thermal+camera,infrared': productImageDefaults[3],
+  'https://source.unsplash.com/1200x900/?self+checkout,retail+store': productImageDefaults[4],
+  'https://source.unsplash.com/1200x900/?license+plate,traffic+camera': productImageDefaults[5],
+  'https://source.unsplash.com/1200x900/?machine+learning,model+training': productImageDefaults[6],
+};
+
+const legacyTeamImageMap: Record<string, string> = {
+  '/project-media/team-default-detection.jpg': teamImageDefaults[0],
+  '/project-media/about-detection.jpg': teamImageDefaults[1],
+  '/project-media/architecture-detection.jpg': teamImageDefaults[2],
+  'https://source.unsplash.com/900x1200/?ceo,professional+portrait': teamImageDefaults[0],
+  'https://source.unsplash.com/900x1200/?cto,engineer+portrait': teamImageDefaults[1],
+  'https://source.unsplash.com/900x1200/?ai+engineer,developer+portrait': teamImageDefaults[2],
+};
+
+const isLegacyProjectImage = (value?: string): value is string =>
+  typeof value === 'string' && value.startsWith('/project-media/');
+
+const isLegacyUnsplashImage = (value?: string): value is string =>
+  typeof value === 'string' && value.includes('source.unsplash.com/');
+
+const normalizeRequiredImage = (
+  value: string | undefined,
+  fallback: string,
+  legacyMap: Record<string, string>
+): string => {
+  if (!value) return fallback;
+  const mapped = legacyMap[value];
+  if (mapped) return mapped;
+  if (isLegacyProjectImage(value) || isLegacyUnsplashImage(value)) return fallback;
+  return value;
+};
+
+const normalizeOptionalImage = (
+  value: string | undefined,
+  fallback: string,
+  legacyMap: Record<string, string>
+): string | undefined => {
+  if (!value) return value;
+  const mapped = legacyMap[value];
+  if (mapped) return mapped;
+  if (isLegacyProjectImage(value) || isLegacyUnsplashImage(value)) return fallback;
+  return value;
+};
+
+const normalizeSiteMedia = (media: Partial<SiteMedia> | SiteMedia): SiteMedia => ({
+  heroImage: normalizeRequiredImage(media.heroImage, mediaDefaults.heroImage, legacyMediaImageMap),
+  architectureImage: normalizeRequiredImage(media.architectureImage, mediaDefaults.architectureImage, legacyMediaImageMap),
+  industriesImage: normalizeRequiredImage(media.industriesImage, mediaDefaults.industriesImage, legacyMediaImageMap),
+  aboutImage: normalizeRequiredImage(media.aboutImage, mediaDefaults.aboutImage, legacyMediaImageMap),
+  productsHeroImage: normalizeRequiredImage(media.productsHeroImage, mediaDefaults.productsHeroImage, legacyMediaImageMap),
+  pricingImage: normalizeRequiredImage(media.pricingImage, mediaDefaults.pricingImage, legacyMediaImageMap),
+  contactImage: normalizeRequiredImage(media.contactImage, mediaDefaults.contactImage, legacyMediaImageMap),
+  teamDefaultImage: normalizeRequiredImage(media.teamDefaultImage, mediaDefaults.teamDefaultImage, legacyMediaImageMap),
+});
+
+const normalizeTeamMembers = (team: TeamMember[]) =>
+  team.map((member, index) => ({
+    ...member,
+    image: normalizeOptionalImage(
+      member.image,
+      teamImageDefaults[index % teamImageDefaults.length],
+      legacyTeamImageMap
+    ),
+  }));
+
+const normalizeProducts = (products: Product[]) =>
+  products.map((product, index) => ({
+    ...product,
+    image: normalizeOptionalImage(
+      product.image,
+      productImageDefaults[index % productImageDefaults.length],
+      legacyProductImageMap
+    ),
+  }));
 
 const defaultIndustries: Industry[] = [
   {
@@ -514,12 +620,12 @@ export const useStore = create<AppState>()(
         })),
       updateTeam: (team) =>
         set((state) => ({
-          team,
+          team: normalizeTeamMembers(team),
           ...withLocalSyncMeta(state.contentVersion),
         })),
       updateProducts: (products) =>
         set((state) => ({
-          products,
+          products: normalizeProducts(products),
           ...withLocalSyncMeta(state.contentVersion),
         })),
       updatePlans: (plans) =>
@@ -534,7 +640,7 @@ export const useStore = create<AppState>()(
         })),
       updateMedia: (media) =>
         set((state) => ({
-          media: { ...state.media, ...media },
+          media: normalizeSiteMedia({ ...state.media, ...media }),
           ...withLocalSyncMeta(state.contentVersion),
         })),
       replaceSiteContent: (content, meta) =>
@@ -549,11 +655,11 @@ export const useStore = create<AppState>()(
             contactEmail: content.contactEmail ?? state.contactEmail,
             contactPhone: content.contactPhone ?? state.contactPhone,
             contactAddress: content.contactAddress ?? state.contactAddress,
-            team: content.team ?? state.team,
-            products: content.products ?? state.products,
+            team: content.team ? normalizeTeamMembers(content.team) : state.team,
+            products: content.products ? normalizeProducts(content.products) : state.products,
             plans: content.plans ?? state.plans,
             industries: content.industries ?? state.industries,
-            media: content.media ? { ...state.media, ...content.media } : state.media,
+            media: content.media ? normalizeSiteMedia({ ...state.media, ...content.media }) : state.media,
             contentVersion: Math.max(incomingVersion, state.contentVersion),
             lastSyncedAt: meta?.updatedAt ?? new Date().toISOString(),
             lastSyncSource: meta?.source ?? 'remote',
@@ -580,8 +686,17 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'eyespot-storage-v10',
-      version: 1,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persistedState) => {
+        const state = (persistedState ?? {}) as Partial<AppState>;
+        return {
+          ...state,
+          team: normalizeTeamMembers(Array.isArray(state.team) ? state.team : defaultContent.team),
+          products: normalizeProducts(Array.isArray(state.products) ? state.products : defaultContent.products),
+          media: normalizeSiteMedia(state.media ? { ...mediaDefaults, ...state.media } : mediaDefaults),
+        };
+      },
       partialize: (state) => ({
         companyName: state.companyName,
         tagline: state.tagline,
