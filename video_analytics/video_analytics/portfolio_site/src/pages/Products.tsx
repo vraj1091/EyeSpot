@@ -103,13 +103,13 @@ export default function Products() {
       {/* ── Hero ── */}
       <section className="section-card p-2 overflow-hidden">
         <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-2">
-          <div className="image-frame min-h-[320px]">
+          <div className="image-frame order-2 lg:order-1 min-h-[220px] sm:min-h-[320px]">
             <img src={media.productsHeroImage} alt="AI video analytics solutions" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 to-transparent" />
           </div>
-          <div className="p-8 md:p-12 flex flex-col justify-center">
+          <div className="order-1 lg:order-2 p-5 sm:p-8 md:p-12 flex flex-col justify-center">
             <span className="premium-chip mb-4">8 Industries · 40+ Detections</span>
-            <h1 className="font-heading text-4xl md:text-6xl font-semibold text-slate-900 leading-tight">
+            <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl font-semibold text-slate-900 leading-tight">
               Solutions By Industry
             </h1>
             <p className="mt-5 max-w-xl text-slate-600 leading-relaxed">
@@ -126,7 +126,7 @@ export default function Products() {
             </div>
             <Link
               to="/book-demo?source=products-hero"
-              className="mt-8 inline-flex items-center gap-2 self-start rounded-lg bg-primary px-5 py-3 text-white font-semibold hover:bg-primary/90 transition-colors"
+              className="mt-8 inline-flex items-center justify-center gap-2 self-stretch sm:self-start rounded-lg bg-primary px-5 py-3 text-white font-semibold hover:bg-primary/90 transition-colors"
             >
               Book a Live Demo <ChevronRight className="w-4 h-4" />
             </Link>
@@ -136,7 +136,7 @@ export default function Products() {
 
       {/* ── Main: Sidebar + Bento ── */}
       <section>
-        <div className="flex gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] gap-4 lg:gap-6 items-start">
 
           {/* ── Sidebar ── */}
           <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 sticky top-24">
@@ -181,8 +181,8 @@ export default function Products() {
           </aside>
 
           {/* ── Mobile tab strip ── */}
-          <div className="lg:hidden w-full mb-4">
-            <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+          <div className="lg:hidden w-full mb-3">
+            <div className="flex overflow-x-auto gap-2 pb-2 pr-1 scrollbar-hide">
               {industries.map((ind) => {
                 const IconComp = iconMap[ind.icon] || Building2;
                 const isActive = ind.id === activeIndustry;
@@ -205,8 +205,8 @@ export default function Products() {
           </div>
 
           {/* ── Bento Detail Pane ── */}
-          <div className="flex-1 min-w-0" ref={detailRef}>
-            <AnimatePresence mode="wait">
+          <div className="w-full min-w-0" ref={detailRef}>
+            <AnimatePresence mode="wait" initial={false}>
               {selectedIndustry && (
                 <motion.div
                   key={selectedIndustry.id}
@@ -216,7 +216,7 @@ export default function Products() {
                   transition={{ duration: 0.3 }}
                 >
                   {/* Industry Header */}
-                  <div className="section-card p-7 md:p-8 mb-6">
+                  <div className="section-card p-5 sm:p-6 md:p-8 mb-6">
                     <div className="flex flex-wrap items-center gap-3 mb-2">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-primary text-white`}>
                         {(() => {
@@ -225,8 +225,8 @@ export default function Products() {
                         })()}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="font-heading text-3xl md:text-4xl font-semibold text-slate-900">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold text-slate-900 break-words">
                             {selectedIndustry.title}
                           </h2>
                           <span className={`text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full border ${statusStyles[selectedIndustry.status].pill}`}>
@@ -287,7 +287,7 @@ export default function Products() {
                               </span>
                             </div>
 
-                            <h3 className="font-heading text-lg md:text-xl text-slate-900 font-semibold leading-snug">
+                            <h3 className="font-heading text-lg md:text-xl text-slate-900 font-semibold leading-snug break-words">
                               {det.name}
                             </h3>
                             <p className="mt-2 text-sm text-slate-500 leading-relaxed">
@@ -339,12 +339,20 @@ export default function Products() {
                     </div>
                     <Link
                       to={`/book-demo?source=industry-cta&industry=${selectedIndustry.id}`}
-                      className="flex-shrink-0 inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-5 py-3 font-semibold text-sm hover:bg-slate-100 transition-colors"
+                      className="w-full sm:w-auto justify-center flex-shrink-0 inline-flex items-center gap-2 rounded-lg bg-white text-slate-900 px-5 py-3 font-semibold text-sm hover:bg-slate-100 transition-colors"
                     >
                       Start Pilot <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </motion.div>
+              )}
+              {!selectedIndustry && (
+                <div className="section-card p-5 sm:p-6">
+                  <h2 className="font-heading text-xl sm:text-2xl text-slate-900">Industry data unavailable</h2>
+                  <p className="mt-2 text-slate-600">
+                    No industry content was found. Open Admin Panel and add at least one industry to render this section.
+                  </p>
+                </div>
               )}
             </AnimatePresence>
           </div>
@@ -381,7 +389,7 @@ export default function Products() {
                     <div className="bg-primary/10 border border-primary/20 w-12 h-12 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
                       <IconComponent className="w-5 h-5" />
                     </div>
-                    <h2 className="font-heading text-2xl md:text-3xl font-semibold text-slate-900 leading-tight">
+                    <h2 className="font-heading text-2xl md:text-3xl font-semibold text-slate-900 leading-tight break-words">
                       {p.name}
                     </h2>
                   </header>
@@ -420,3 +428,4 @@ export default function Products() {
     </motion.div>
   );
 }
+

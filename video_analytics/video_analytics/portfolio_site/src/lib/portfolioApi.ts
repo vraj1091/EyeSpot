@@ -30,8 +30,17 @@ export interface LeadRequestResponse {
 }
 
 const DEFAULT_API_ROOT = '/api';
+const DEFAULT_REMOTE_SYNC_ENABLED = false;
 
 const stripTrailingSlash = (value: string) => value.replace(/\/+$/, '');
+
+const isFalseLike = (value: string) => ['0', 'false', 'no', 'off'].includes(value.trim().toLowerCase());
+
+export const isPortfolioRemoteSyncEnabled = () => {
+  const flag = import.meta.env.VITE_ENABLE_PORTFOLIO_REMOTE_SYNC;
+  if (typeof flag !== 'string') return DEFAULT_REMOTE_SYNC_ENABLED;
+  return !isFalseLike(flag);
+};
 
 const readApiRoot = () => {
   const envRoot = import.meta.env.VITE_PORTFOLIO_API_BASE || import.meta.env.VITE_API_URL;
@@ -46,35 +55,54 @@ const defaultHeaders: HeadersInit = {
   Pragma: 'no-cache',
 };
 
-const ensureOk = async (response: Response) => {
-  if (response.ok) {
-    return;
+export class RemoteSyncUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RemoteSyncUnavailableError';
   }
+}
+
+const parseJsonResponse = async <T>(response: Response, context: string): Promise<T> => {
+  const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
   const text = await response.text();
-  throw new Error(text || `Request failed with status ${response.status}`);
+  if (!response.ok) {
+    throw new Error(text || `${context} failed with status ${response.status}`);
+  }
+  if (!contentType.includes('application/json')) {
+    throw new RemoteSyncUnavailableError(`${context} endpoint is unavailable for this deployment.`);
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new RemoteSyncUnavailableError(`${context} endpoint returned an invalid response.`);
+  }
 };
 
 export const fetchPortfolioContent = async (): Promise<PortfolioContentApiResponse> => {
+  if (!isPortfolioRemoteSyncEnabled()) {
+    throw new RemoteSyncUnavailableError('Remote sync is disabled.');
+  }
   const response = await fetch(`${apiUrl('/portfolio/content')}?t=${Date.now()}`, {
     method: 'GET',
     headers: defaultHeaders,
     cache: 'no-store',
   });
-  await ensureOk(response);
-  return (await response.json()) as PortfolioContentApiResponse;
+  return parseJsonResponse<PortfolioContentApiResponse>(response, 'Content sync');
 };
 
 export const savePortfolioContent = async (
   content: SiteContentPayload
 ): Promise<PortfolioContentApiResponse> => {
+  if (!isPortfolioRemoteSyncEnabled()) {
+    throw new RemoteSyncUnavailableError('Remote sync is disabled.');
+  }
   const response = await fetch(apiUrl('/portfolio/content'), {
     method: 'PUT',
     headers: defaultHeaders,
     cache: 'no-store',
     body: JSON.stringify({ content }),
   });
-  await ensureOk(response);
-  return (await response.json()) as PortfolioContentApiResponse;
+  return parseJsonResponse<PortfolioContentApiResponse>(response, 'Content save');
 };
 
 export const submitLeadRequest = async (
@@ -86,8 +114,7 @@ export const submitLeadRequest = async (
     cache: 'no-store',
     body: JSON.stringify(payload),
   });
-  await ensureOk(response);
-  return (await response.json()) as LeadRequestResponse;
+  return parseJsonResponse<LeadRequestResponse>(response, 'Lead submit');
 };
 
 export const clearLegacyPortfolioCaches = () => {

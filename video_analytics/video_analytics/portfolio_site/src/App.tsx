@@ -12,7 +12,7 @@ import Products from './pages/Products';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import BookDemo from './pages/BookDemo';
-import { clearLegacyPortfolioCaches, fetchPortfolioContent } from './lib/portfolioApi';
+import { clearLegacyPortfolioCaches, fetchPortfolioContent, isPortfolioRemoteSyncEnabled } from './lib/portfolioApi';
 import { useStore } from './store/useStore';
 
 // Animated Route Wrapper
@@ -55,6 +55,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!isPortfolioRemoteSyncEnabled()) return;
+
     let isMounted = true;
     const syncRemoteContent = async () => {
       if (isAdminOpen) return;

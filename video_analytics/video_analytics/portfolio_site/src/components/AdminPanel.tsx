@@ -17,7 +17,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { useStore, TeamMember, Product, Plan, SiteMedia, Industry, Detection } from '../store/useStore';
-import { savePortfolioContent } from '../lib/portfolioApi';
+import { isPortfolioRemoteSyncEnabled, RemoteSyncUnavailableError, savePortfolioContent } from '../lib/portfolioApi';
 
 type AdminTab = 'overview' | 'globals' | 'team' | 'products' | 'industries' | 'plans' | 'media';
 
@@ -176,6 +176,12 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       media: mediaDraft,
     }));
 
+    if (!isPortfolioRemoteSyncEnabled()) {
+      setSaveState('saved');
+      setSaveMessage('Saved locally. Global sync is disabled for this deployment.');
+      return;
+    }
+
     try {
       const remote = await savePortfolioContent(payload);
       store.replaceSiteContent(remote.content, {
@@ -186,6 +192,11 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       setSaveState('saved');
       setSaveMessage('Saved and synced globally.');
     } catch (error) {
+      if (error instanceof RemoteSyncUnavailableError) {
+        setSaveState('saved');
+        setSaveMessage('Saved locally. Global sync endpoint is unavailable right now.');
+        return;
+      }
       const reason = error instanceof Error ? error.message : 'Global sync failed.';
       setSaveState('error');
       setSaveMessage(`Saved locally, but global sync failed. ${reason}`);
